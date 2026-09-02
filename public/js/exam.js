@@ -179,7 +179,6 @@ function renderAid(item) {
   host.hidden = !(isRtl() && item.arabic && showAid);
   if (host.hidden) return;
   host.append(
-    el('div', { class: 'aid-label', text: t('exam.aidLabel') }),
     el('div', { class: 'aid-text', dir: 'rtl', lang: 'ar', text: item.arabic }),
   );
 }

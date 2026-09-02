@@ -16,6 +16,8 @@ const COLUMN_HEADS = {
   VT: ['VT', ''], RD: ['RD', ''], UEC: ['UEC', ''],
 };
 
+mountLanguageToggle(document.getElementById('lang-slot'));
+
 document.getElementById('print-now').addEventListener('click', () => window.print());
 document.getElementById('close').addEventListener('click', () => window.close());
 
@@ -23,13 +25,13 @@ load();
 
 async function load() {
   const ids = new URLSearchParams(location.search).get('ids') || '';
-  if (!ids) return fail('No submissions selected.');
+  if (!ids) return fail(t('print.none'));
 
   let data;
   try {
     data = await api(`/api/admin/print?ids=${encodeURIComponent(ids)}`);
   } catch (error) {
-    return fail(error.message);
+    return fail(errorText(error));
   }
 
   const container = document.getElementById('sheets');
@@ -40,7 +42,7 @@ async function load() {
   }
 
   document.getElementById('count').textContent =
-    `${data.submissions.length} competency form(s)`;
+    t('print.count', { count: data.submissions.length });
   document.title = data.submissions.length === 1
     ? `${data.submissions[0].nurse_name} — ${data.submissions[0].form_title}`
     : `Competency forms (${data.submissions.length})`;
@@ -72,7 +74,7 @@ function renderSheet(submission, form) {
           text: `${form.source_pdf} · submission #${submission.id}`,
         }),
         el('span', {
-          text: `Submitted ${formatDateTime(submission.submitted_at)}`,
+          text: `Submitted ${formatFormDateTime(submission.submitted_at)}`,
         }),
       ]),
     ]),
@@ -94,7 +96,7 @@ function header(submission, form) {
 function detailsTable(submission) {
   const pairs = [
     ['Name:', submission.nurse_name, 'Unit:', submission.nurse_unit],
-    ['Contract Date:', formatDate(submission.nurse_contract_date),
+    ['Contract Date:', formatFormDate(submission.nurse_contract_date),
       'Job Number:', submission.nurse_job_number],
     ['Job Title:', submission.nurse_job_title,
       'Rating:', ratingText(submission)],
@@ -210,7 +212,7 @@ function formulaRow(submission) {
       '  NO ',
       el('span', { class: 'box', text: submission.needs_remedial ? '' : '✓' }),
       el('span', {
-        text: `   REMEDIAL DATE: ${formatDate(submission.remedial_date) || '____________'}`,
+        text: `   REMEDIAL DATE: ${formatFormDate(submission.remedial_date) || '____________'}`,
       }),
     ]),
   ]);
@@ -236,7 +238,7 @@ function signaturesBlock(submission) {
       ]),
       el('div', { class: 'sig', style: 'max-width:45mm' }, [
         el('div', { text: 'Date:' }),
-        el('div', { class: 'line', text: formatDate(submission.evaluated_date) }),
+        el('div', { class: 'line', text: formatFormDate(submission.evaluated_date) }),
         el('div', { class: 'cap', text: 'Date' }),
       ]),
     ]),
@@ -249,7 +251,7 @@ function signaturesBlock(submission) {
       el('div', { class: 'sig', style: 'max-width:45mm' }, [
         el('div', { text: 'Date:' }),
         el('div', { class: 'line',
-          text: formatDate(submission.conformed_date) || formatDate(submission.exam_date) }),
+          text: formatFormDate(submission.conformed_date) || formatFormDate(submission.exam_date) }),
         el('div', { class: 'cap', text: 'Date' }),
       ]),
     ]),

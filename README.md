@@ -128,6 +128,35 @@ header, or stop the server and run:
 node server.js --set-password 'a-new-password'
 ```
 
+## Language
+
+The site opens in **Arabic**, laid out right-to-left, with a toggle in the
+header to switch to English. The choice is remembered per browser.
+
+What is translated is the site: buttons, labels, headings, messages, the
+admin table, dates and the result wording.
+
+What is **never** translated is anything taken from the competency PDFs —
+the form titles, the section names, the wording of every competency item,
+and the M / NM / NA rating codes. That is the hospital's assessment
+wording, and it appears exactly as the PDF has it. In Arabic those parts
+are marked left-to-right so the English reads correctly on a
+right-to-left page, and short Arabic glosses sit beside the fixed
+vocabulary (`I. KNOWLEDGE — المعرفة`, `M — مستوفى`) as a reading aid, never
+as a replacement.
+
+**The printed form does not change with the language.** It is the
+hospital's own document, so it is always reproduced left-to-right, in
+English, with its own date format — printing from the Arabic interface
+produces exactly the same paper as printing from the English one. This is
+checked by the test suite.
+
+Scores, percentages, job numbers and dates always use Latin digits, so a
+record reads the same to everyone handling the paper afterwards.
+
+To change any wording, edit `public/js/i18n.js`; the two languages are
+side by side and `npm test` fails if a key is missing from either.
+
 ## How a nurse uses it
 
 1. Opens the site and enters their **job number, name, job title, unit and
@@ -219,11 +248,16 @@ npm test                                   # SQLite and the Vercel code path
 TEST_DATABASE_URL=postgres://... npm test  # also against real Postgres
 ```
 
+`npm test` first checks the two languages — that every key exists in both
+with matching placeholders, that no competency wording has leaked into the
+translation file, and that the printed form stays fixed to the source
+wording and direction — then walks the whole journey:
+
 Walks the whole journey — every form loads with unique items,
 registration, rejected and accepted submissions, the NA deduction, the 90%
 pass mark, the equipment scale, admin authentication, filters, evaluator
 details, the print payload, CSV export, deletion and the login lockout —
-and runs it against every way the site can be deployed:
+against every way the site can be deployed:
 
 1. `server.js` on SQLite (self-hosted)
 2. `api/[...path].js` on SQLite (the Vercel function's own code)
@@ -285,6 +319,7 @@ lib/forms.js                    Loads the extracted competency forms
 data/competencies.json          The 46 forms, extracted from the PDFs
 var/competency.db               SQLite records (self-hosted only, not in git)
 
+public/js/i18n.js               Arabic / English interface strings
 public/index.html               Nurse: register and choose a competency
 public/exam.html                Nurse: the one-click exam
 public/admin.html               Admin: records, evaluator details, printing
@@ -293,6 +328,8 @@ public/print.html               The printable competency forms
 tools/extract_competencies.py   PDF -> data/competencies.json
 test/smoke.js                   End-to-end test across every deployment shape
 test/suite.js                   The checks themselves
+test/i18n.test.js               Checks both languages, and that the form's own
+                                wording is never translated
 test/vercel-shim.js             Runs the Vercel function locally for the tests
 *.pdf                           The original competency forms (source of truth)
 ```

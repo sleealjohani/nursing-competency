@@ -243,3 +243,68 @@ dialog .dlg-foot { padding: 14px 22px; border-top: 1px solid var(--line); displa
   .card { padding: 17px; }
   .q-text { font-size: 16.5px; }
 }
+
+/* --- Arabic / right-to-left ------------------------------------------------
+   The interface mirrors, but anything quoted from the competency PDFs keeps
+   its own left-to-right direction so the English reads correctly. */
+
+.lang-toggle {
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .3);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  line-height: 1.5;
+}
+.lang-toggle:hover { background: rgba(255, 255, 255, .22); }
+
+/* Source wording from the forms always reads left-to-right. Short items —
+   a competency title, a table cell — still hug the start edge of the Arabic
+   layout so they line up with everything beside them; a full paragraph of
+   source text keeps its own left edge, which is easier to read. */
+[dir="rtl"] .source-text {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: right;
+}
+[dir="rtl"] .q-text.source-text,
+[dir="rtl"] .review-item .source-text,
+[dir="rtl"] .note.source-text {
+  text-align: left;
+}
+
+/* A short Arabic reading aid beside fixed form vocabulary. */
+.gloss {
+  color: var(--muted);
+  font-weight: 600;
+}
+.q-section .gloss { color: var(--brand); opacity: .8; }
+
+[dir="rtl"] body {
+  font-family: "Segoe UI", "Noto Naskh Arabic", "Geeza Pro", Tahoma,
+    system-ui, sans-serif;
+}
+
+/* Scores, job numbers and percentages stay in Latin digits, reading LTR. */
+[dir="rtl"] table.data td[dir="ltr"],
+[dir="rtl"] .rate .code,
+[dir="rtl"] .review-item .n,
+[dir="rtl"] .review-item .r {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+[dir="rtl"] table.data td.num { text-align: left; }
+
+/* Mirror the few places that use a physical direction. */
+[dir="rtl"] .review-item .r { text-align: left; }
+[dir="rtl"] .form-item, [dir="rtl"] table.data th,
+[dir="rtl"] table.data td { text-align: right; }
+[dir="rtl"] .admin-actions, [dir="rtl"] .sticky-actions { flex-direction: row; }
+[dir="rtl"] .topbar a, [dir="rtl"] .topbar h1 { text-align: right; }
+[dir="rtl"] .q-text { text-align: left; }
+[dir="rtl"] input[type="checkbox"] { margin-left: 7px; margin-right: 0; }
+[dir="rtl"] .msg, [dir="rtl"] .empty { text-align: right; }
+[dir="rtl"] .empty { text-align: center; }

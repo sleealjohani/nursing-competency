@@ -11,9 +11,20 @@ async function api(path, options = {}) {
   const type = response.headers.get('content-type') || '';
   const payload = type.includes('json') ? await response.json() : null;
   if (!response.ok) {
-    throw new Error(payload?.error || `Request failed (${response.status})`);
+    // Carry the machine-readable code so the message can be shown in the
+    // reader's language rather than the server's English.
+    const error = new Error(payload?.error || `Request failed (${response.status})`);
+    error.code = payload?.code;
+    error.details = payload?.details;
+    error.status = response.status;
+    throw error;
   }
   return payload;
+}
+
+/** The translated message for a failed api() call. */
+function errorText(error) {
+  return translateError(error);
 }
 
 function el(tag, props = {}, children = []) {
@@ -40,7 +51,28 @@ function showMessage(container, text, kind = 'error') {
   if (text) target.append(el('div', { class: `msg msg-${kind}`, text }));
 }
 
+/**
+ * Arabic month names, but always Latin digits: a job number, a score and a
+ * date must read the same to everyone handling the paper afterwards.
+ */
+function dateLocale() {
+  return isRtl() ? 'ar-u-nu-latn' : 'en-GB';
+}
+
 function formatDate(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString(dateLocale(),
+    { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+/**
+ * Dates printed onto the competency form. Fixed to the form's own format
+ * whatever language the site is being read in — the paper is the hospital's
+ * record and must not change with a UI preference.
+ */
+function formatFormDate(value) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -48,11 +80,21 @@ function formatDate(value) {
     { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function formatDateTime(value) {
+function formatFormDateTime(value) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
+function formatDateTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString(dateLocale(), {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });
@@ -71,7 +113,24 @@ function percentText(value) {
 function resultBadge(result) {
   const cls = result === 'Met' ? 'badge-met'
     : result === 'Not Met' ? 'badge-notmet' : 'badge-na';
-  return el('span', { class: `badge ${cls}`, text: result });
+  return el('span', { class: `badge ${cls}`, text: t(`value.${result}`) });
+}
+
+function categoryBadge(category) {
+  return el('span', { class: 'badge badge-cat', text: t(`category.${category}`) });
+}
+
+/**
+ * A heading for a section of the paper form: the source name verbatim, with
+ * a short Arabic gloss beside it when reading in Arabic.
+ */
+function sectionHeading(roman, name) {
+  const node = el('span', {}, [
+    el('span', { dir: 'ltr', text: `${roman}. ${name}` }),
+  ]);
+  const arabic = gloss(`section.${name}`);
+  if (arabic) node.append(el('span', { class: 'gloss', text: ` — ${arabic}` }));
+  return node;
 }
 
 /**
@@ -85,15 +144,14 @@ async function checkStorageHealth(containerId) {
     const health = await api('/api/health');
     if (health.ok) return true;
     showMessage(containerId,
-      `This site is not finished setting up. ${health.error || ''}`.trim(),
-      'error');
+      t('error.storageSetup', { detail: health.error || '' }).trim(), 'error');
     return false;
   } catch (error) {
-    showMessage(containerId,
-      error.message.includes('database') || error.message.includes('Postgres')
-        ? `This site is not finished setting up. ${error.message}`
-        : `Cannot reach the server: ${error.message}`,
-      'error');
+    const isSetup = error.code === 'storage_unavailable'
+      || /database|Postgres/.test(error.message);
+    showMessage(containerId, isSetup
+      ? t('error.storageSetup', { detail: error.message })
+      : t('error.unreachable', { detail: error.message }), 'error');
     return false;
   }
 }

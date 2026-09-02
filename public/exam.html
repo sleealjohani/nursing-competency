@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,11 +10,12 @@
 <body>
 <header class="topbar">
   <div>
-    <h1>Alhadithah General Hospital</h1>
-    <div class="sub">Nursing Service Department &middot; Competency Assessment</div>
+    <h1 data-i18n="hospital">Alhadithah General Hospital</h1>
+    <div class="sub" data-i18n="departmentAssessment">Nursing Service Department</div>
   </div>
   <div class="spacer"></div>
-  <a href="/">Leave exam</a>
+  <span id="lang-slot"></span>
+  <a href="/" data-i18n="nav.leaveExam">Leave exam</a>
 </header>
 
 <div class="exam-head" id="exam-head" hidden>
@@ -23,7 +24,7 @@
       <div class="title" id="exam-title"></div>
       <div class="meta" id="exam-meta"></div>
     </div>
-    <button type="button" id="toggle-view" class="btn-sm">Review all answers</button>
+    <button type="button" id="toggle-view" class="btn-sm" data-i18n="exam.reviewAll">Review all answers</button>
   </div>
   <div class="row"><div class="progress-track" style="flex:1">
     <div class="progress-fill" id="progress" style="width:0%"></div>
@@ -32,7 +33,7 @@
 
 <main class="wrap" id="main">
   <div id="msg"></div>
-  <div class="card" id="loading"><p class="hint" style="margin:0">Loading competency…</p></div>
+  <div class="card" id="loading"><p class="hint" style="margin:0" data-i18n="exam.loading">Loading…</p></div>
 
   <!-- One question at a time -->
   <section class="card q-card" id="question-card" hidden>
@@ -41,8 +42,8 @@
     <div class="q-text" id="q-text"></div>
     <div class="rate-row" id="rate-row"></div>
     <div class="q-nav">
-      <button type="button" id="prev">&larr; Previous</button>
-      <button type="button" id="next">Skip &rarr;</button>
+      <button type="button" id="prev"></button>
+      <button type="button" id="next"></button>
       <span class="spacer"></span>
       <span class="meta" id="keyhint" style="color:var(--muted);font-size:12.5px"></span>
     </div>
@@ -50,13 +51,13 @@
 
   <!-- Review + submit -->
   <section class="card" id="review-card" hidden>
-    <h2>Review your answers</h2>
+    <h2 data-i18n="exam.reviewHeading">Review your answers</h2>
     <p class="hint" id="review-hint"></p>
     <div id="review-list"></div>
     <div class="q-nav" style="margin-top:20px">
-      <button type="button" id="back-to-questions">&larr; Back to questions</button>
+      <button type="button" id="back-to-questions"></button>
       <span class="spacer"></span>
-      <button type="button" class="btn-primary" id="submit">Submit competency</button>
+      <button type="button" class="btn-primary" id="submit" data-i18n="exam.submit">Submit</button>
     </div>
   </section>
 
@@ -65,11 +66,12 @@
     <h2 id="result-title"></h2>
     <div id="result-body"></div>
     <div class="q-nav" style="margin-top:20px">
-      <a class="btn btn-primary" href="/">Take another competency</a>
+      <a class="btn btn-primary" href="/" data-i18n="result.another">Take another competency</a>
     </div>
   </section>
 </main>
 
+<script src="/js/i18n.js"></script>
 <script src="/js/common.js"></script>
 <script src="/js/exam.js"></script>
 </body>

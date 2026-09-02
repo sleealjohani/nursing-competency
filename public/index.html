@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nursing Competency Exam — Alhadithah General Hospital</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <h1>Alhadithah General Hospital</h1>
+    <div class="sub">Nursing Service Department &middot; Competency Assessment</div>
+  </div>
+  <div class="spacer"></div>
+  <a href="/admin">Admin</a>
+</header>
+
+<main class="wrap narrow" id="main">
+  <!-- Step 1: register -->
+  <section class="card" id="register-card">
+    <h2>Your details</h2>
+    <p class="hint">These appear at the top of every competency form you submit.
+      Enter your job number first — if you have registered before, the rest fills in.</p>
+    <div id="register-msg"></div>
+    <form id="register-form">
+      <div class="grid2">
+        <div class="field">
+          <label for="jobNumber">Job Number <span class="req">*</span></label>
+          <input id="jobNumber" name="jobNumber" required autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="name">Name <span class="req">*</span></label>
+          <input id="name" name="name" required autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="jobTitle">Job Title</label>
+          <input id="jobTitle" name="jobTitle" list="job-titles" autocomplete="off">
+          <datalist id="job-titles">
+            <option>Staff Nurse</option><option>Charge Nurse</option>
+            <option>Head Nurse</option><option>Midwife</option>
+            <option>Nursing Supervisor</option>
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="unit">Unit</label>
+          <input id="unit" name="unit" list="units" autocomplete="off">
+          <datalist id="units">
+            <option>Emergency</option><option>ICU</option><option>NICU</option>
+            <option>Medical Ward</option><option>Surgical Ward</option>
+            <option>Labour &amp; Delivery</option><option>Paediatrics</option>
+            <option>Operating Theatre</option><option>Outpatient</option>
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="contractDate">Contract Date</label>
+          <input id="contractDate" name="contractDate" type="date">
+        </div>
+        <div class="field">
+          <label for="examDate">Date of Exam</label>
+          <input id="examDate" name="examDate" type="date">
+        </div>
+      </div>
+      <button class="btn-primary" type="submit">Save and choose a competency</button>
+    </form>
+  </section>
+
+  <!-- Step 2: pick a competency -->
+  <section class="card" id="picker-card" hidden>
+    <h2>Choose a competency</h2>
+    <p class="hint" id="picker-who"></p>
+    <div class="picker-tools">
+      <input id="search" placeholder="Search competencies…" autocomplete="off">
+      <select id="category">
+        <option value="">All categories</option>
+        <option>Mandatory</option>
+        <option>Specific</option>
+        <option>General</option>
+      </select>
+    </div>
+    <div class="form-list" id="form-list"></div>
+    <p class="empty" id="picker-empty" hidden>No competency matches that search.</p>
+    <p style="margin-top:18px">
+      <button type="button" id="edit-details" class="btn-sm">Edit my details</button>
+    </p>
+  </section>
+</main>
+
+<script src="/js/common.js"></script>
+<script src="/js/register.js"></script>
+</body>
+</html>

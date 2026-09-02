@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Competency Exam — Alhadithah General Hospital</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <h1>Alhadithah General Hospital</h1>
+    <div class="sub">Nursing Service Department &middot; Competency Assessment</div>
+  </div>
+  <div class="spacer"></div>
+  <a href="/">Leave exam</a>
+</header>
+
+<div class="exam-head" id="exam-head" hidden>
+  <div class="row">
+    <div class="grow" style="flex:1;min-width:0">
+      <div class="title" id="exam-title"></div>
+      <div class="meta" id="exam-meta"></div>
+    </div>
+    <button type="button" id="toggle-view" class="btn-sm">Review all answers</button>
+  </div>
+  <div class="row"><div class="progress-track" style="flex:1">
+    <div class="progress-fill" id="progress" style="width:0%"></div>
+  </div></div>
+</div>
+
+<main class="wrap" id="main">
+  <div id="msg"></div>
+  <div class="card" id="loading"><p class="hint" style="margin:0">Loading competency…</p></div>
+
+  <!-- One question at a time -->
+  <section class="card q-card" id="question-card" hidden>
+    <div class="q-section" id="q-section"></div>
+    <div class="q-number" id="q-number"></div>
+    <div class="q-text" id="q-text"></div>
+    <div class="rate-row" id="rate-row"></div>
+    <div class="q-nav">
+      <button type="button" id="prev">&larr; Previous</button>
+      <button type="button" id="next">Skip &rarr;</button>
+      <span class="spacer"></span>
+      <span class="meta" id="keyhint" style="color:var(--muted);font-size:12.5px"></span>
+    </div>
+  </section>
+
+  <!-- Review + submit -->
+  <section class="card" id="review-card" hidden>
+    <h2>Review your answers</h2>
+    <p class="hint" id="review-hint"></p>
+    <div id="review-list"></div>
+    <div class="q-nav" style="margin-top:20px">
+      <button type="button" id="back-to-questions">&larr; Back to questions</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn-primary" id="submit">Submit competency</button>
+    </div>
+  </section>
+
+  <!-- Result -->
+  <section class="card" id="result-card" hidden>
+    <h2 id="result-title"></h2>
+    <div id="result-body"></div>
+    <div class="q-nav" style="margin-top:20px">
+      <a class="btn btn-primary" href="/">Take another competency</a>
+    </div>
+  </section>
+</main>
+
+<script src="/js/common.js"></script>
+<script src="/js/exam.js"></script>
+</body>
+</html>

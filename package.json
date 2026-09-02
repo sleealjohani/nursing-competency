@@ -1,0 +1,14 @@
+{
+  "name": "nursing-competency-exam",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Competency assessment site for Alhadithah General Hospital Nursing Service Department: nurses register and sit a competency, admins review and print the signed forms.",
+  "engines": { "node": ">=22.5.0" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/smoke.js",
+    "extract": "python3 tools/extract_competencies.py",
+    "set-password": "node server.js --set-password"
+  },
+  "dependencies": {}
+}

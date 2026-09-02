@@ -97,8 +97,6 @@ const STRINGS = {
     'exam.submit': 'Submit competency',
     'exam.submitting': 'Submitting…',
     'exam.itemsLeft': '{count} item(s) left',
-    'exam.aidLabel': 'Arabic translation (reading aid — the English above is '
-      + 'the assessed wording)',
     'exam.hideAid': 'Hide Arabic',
     'exam.showAid': 'Show Arabic',
     'exam.noneSelected': 'No competency selected.',
@@ -315,8 +313,6 @@ const STRINGS = {
     'exam.submit': 'إرسال الكفاءة',
     'exam.submitting': 'جارٍ الإرسال…',
     'exam.itemsLeft': 'بقي {count} بندًا',
-    'exam.aidLabel': 'الترجمة العربية (للاستئناس — النص الإنجليزي أعلاه هو '
-      + 'المعتمد في التقييم)',
     'exam.hideAid': 'إخفاء العربية',
     'exam.showAid': 'إظهار العربية',
     'exam.noneSelected': 'لم يتم اختيار أي كفاءة.',

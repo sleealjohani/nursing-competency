@@ -137,10 +137,9 @@ What is translated is the site: buttons, labels, headings, messages, the
 admin table, dates and the result wording.
 
 **The questions are available in Arabic too.** Every one of the 792
-competency items has an Arabic rendering, shown under the English in the
-exam and under each item in the review list, in a clearly labelled block:
-*الترجمة العربية (للاستئناس — النص الإنجليزي أعلاه هو المعتمد في التقييم)*.
-A button in the exam header hides or shows it.
+competency items has an Arabic rendering, shown directly under the English
+in the exam and under each item in the review list. A button in the exam
+header hides or shows it.
 
 What is **never replaced** is the wording taken from the competency PDFs.
 The English item stays above the Arabic, in the reader's eye, because it is

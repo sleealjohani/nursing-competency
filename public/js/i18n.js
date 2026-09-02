@@ -138,6 +138,10 @@ const STRINGS = {
     'admin.signInButton': 'Sign in',
     'admin.newPasswordPrompt': 'New admin password (at least 6 characters):',
     'admin.passwordUpdated': 'Admin password updated.',
+    'admin.defaultPassword': 'This site is still using the default password '
+      + '"admin", so anyone can open these records. Set ADMIN_PASSWORD in the '
+      + 'hosting settings and redeploy — adding the variable alone does not '
+      + 'apply it.',
 
     'admin.heading': 'Submitted competencies',
     'admin.hint': 'Filter the list, fill in the evaluator name and dates, then '
@@ -353,6 +357,10 @@ const STRINGS = {
     'admin.signInButton': 'تسجيل الدخول',
     'admin.newPasswordPrompt': 'كلمة مرور جديدة للمسؤول (6 أحرف على الأقل):',
     'admin.passwordUpdated': 'تم تحديث كلمة مرور المسؤول.',
+    'admin.defaultPassword': 'ما زال الموقع يستخدم كلمة المرور الافتراضية '
+      + '"admin"، ما يعني أن بإمكان أي شخص الاطلاع على هذه السجلات. اضبط '
+      + 'ADMIN_PASSWORD في إعدادات الاستضافة ثم أعد النشر — إضافة المتغيّر '
+      + 'وحدها لا تُفعّله.',
 
     'admin.heading': 'الكفاءات المُرسَلة',
     'admin.hint': 'صفِّ القائمة، وأدخل اسم المُقيِّم والتواريخ، ثم اطبع السجلات '

@@ -1,0 +1,7 @@
+# The source competency PDFs are the input to tools/extract_competencies.py,
+# not something the site serves. data/competencies.json is what ships.
+*.pdf
+test/
+tools/
+var/
+data/competency.db*

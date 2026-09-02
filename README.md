@@ -19,23 +19,67 @@ outlive the browser that created it: the admin has to find it weeks later,
 add the evaluator's signature details, and print it. That cannot live in
 the page.
 
-The database is **SQLite**, in a single file at `data/competency.db`,
-using Node's built-in `node:sqlite`. There is no database server to
-install, no cloud account, and no npm packages at all — copy the folder,
-run `node server.js`, and it works. Backing up the records is copying one
-file; see [Backups](#backups).
+Which database depends on where it runs, and the site picks automatically:
 
-## Requirements
+| Where it runs | Storage | Why |
+| --- | --- | --- |
+| **Vercel** (or any serverless host) | **Postgres** | Serverless functions have no disk that survives a request, so records must live in a managed database |
+| **A hospital server or laptop** | **SQLite** file | One file, no database server, no npm packages at all |
+
+Set a Postgres connection string (`POSTGRES_URL` or `DATABASE_URL`) and it
+uses Postgres; leave it unset and it uses a SQLite file at
+`var/competency.db`. Nothing else changes — same pages, same API, same
+printed forms. The schema is created on first run either way.
+
+## Deploying to Vercel
+
+**1. Create the database.** In your Vercel project, open the **Storage**
+tab → **Create Database** → **Postgres** (the Neon option). Pick the same
+region as the project so the site stays fast. Vercel sets `POSTGRES_URL`
+in the project's environment automatically — nothing to copy.
+
+Any other Postgres works too (Supabase, Railway, a hospital-hosted
+server): add its connection string as `DATABASE_URL` instead.
+
+**2. Set the admin password.** In **Settings → Environment Variables**,
+add:
+
+| Name | Value |
+| --- | --- |
+| `ADMIN_PASSWORD` | a strong password of your choosing |
+
+**3. Deploy.** Import the repository (**Add New… → Project**) and deploy.
+There is no build step and no framework to pick — `vercel.json` already
+describes everything. The first request creates the database tables.
+
+That is all. `https://<your-project>.vercel.app/` is the nurse site and
+`/admin` is the records page.
+
+Notes:
+
+- `ADMIN_PASSWORD` is the source of truth once set: change it in Vercel
+  and redeploy to change the password. The admin page hides its own
+  **Change password** link while the variable is set, so the two cannot
+  disagree.
+- The exam content ships inside the deployment as `data/competencies.json`.
+  If a competency form changes, re-run the extractor (below), commit, and
+  Vercel redeploys.
+- Vercel serves HTTPS, so the admin session cookie is marked `Secure`
+  automatically.
+
+## Running it on your own server
+
+Use this to self-host on a hospital machine, or to work on the site
+locally.
 
 - **Node.js 22.5 or newer** — nothing else. Check with `node -v`.
 - Python 3 with `pypdf` only if you need to re-read the PDFs
   (`pip install pypdf`), which is not needed for day-to-day use.
 
-## Running it
-
 ```bash
 git clone <this repository>
 cd nursing-competency
+npm install                 # only needed if you will use Postgres
 
 # Set the admin password on first run (do not leave it as the default).
 ADMIN_PASSWORD='choose-a-strong-password' node server.js
@@ -58,7 +102,8 @@ Settings, all optional:
 | `PORT` | `3000` | Port to listen on |
 | `HOST` | `0.0.0.0` | Interface to bind |
 | `ADMIN_PASSWORD` | `admin` on first run | Admin password |
-| `DB_FILE` | `data/competency.db` | Where records are stored |
+| `POSTGRES_URL` / `DATABASE_URL` | unset | Use Postgres instead of a SQLite file |
+| `DB_FILE` | `var/competency.db` | Where the SQLite file lives |
 
 To change the password later, either use **Change password** in the admin
 header, or stop the server and run:
@@ -154,51 +199,84 @@ sections or item numbering did not come out cleanly.
 ## Tests
 
 ```bash
-npm test
+npm test                                   # SQLite and the Vercel code path
+TEST_DATABASE_URL=postgres://... npm test  # also against real Postgres
 ```
 
-Boots the server against a throwaway database and walks the whole journey:
-every form loads with unique items, registration, rejected and accepted
-submissions, the NA deduction, the 90% pass mark, the equipment scale,
-admin authentication, filters, evaluator details, the print payload, CSV
-export, deletion, and that static files cannot escape `public/`.
+Walks the whole journey — every form loads with unique items,
+registration, rejected and accepted submissions, the NA deduction, the 90%
+pass mark, the equipment scale, admin authentication, filters, evaluator
+details, the print payload, CSV export, deletion and the login lockout —
+and runs it against every way the site can be deployed:
+
+1. `server.js` on SQLite (self-hosted)
+2. `api/[...path].js` on SQLite (the Vercel function's own code)
+3. the same, with the URL shape a Vercel rewrite delivers
+4. `server.js` on Postgres (the storage Vercel uses)
+5. `api/[...path].js` on Postgres (the deployed combination)
+
+Postgres is skipped unless `TEST_DATABASE_URL` is set, so `npm test` works
+with no database to hand.
 
 ## Backups
 
-Every record is in `data/competency.db`. To back it up, stop the server
-and copy that file (with `-wal` and `-shm` alongside it if present):
+The records hold staff names, job numbers and assessment results, so keep
+backups somewhere access-controlled.
+
+**On Vercel (Postgres).** Neon and Vercel Postgres keep automatic
+point-in-time backups; check the retention on your plan. For a copy you
+hold yourself:
 
 ```bash
-cp data/competency.db* /path/to/backup/
+pg_dump "$POSTGRES_URL" > competency-backup.sql
 ```
 
-Restore by copying it back. Keep backups somewhere access-controlled — the
-file holds staff names, job numbers and assessment results.
+**Self-hosted (SQLite).** Stop the server and copy the file, with `-wal`
+and `-shm` alongside it if present:
+
+```bash
+cp var/competency.db* /path/to/backup/
+```
+
+Restore either by loading the dump or copying the file back.
 
 ## Before putting it in front of staff
 
-- Set `ADMIN_PASSWORD`. The default is `admin` and the server warns about
-  it on startup.
-- Put it behind HTTPS (a reverse proxy such as nginx or Caddy) if it is
-  reachable beyond the hospital's internal network. The admin session
-  cookie is `HttpOnly` and `SameSite=Strict`, but the password itself
-  travels in the clear over plain HTTP.
-- Keep the server running across reboots with a service manager
-  (`systemd`, `pm2`, or Windows Task Scheduler).
+- Set `ADMIN_PASSWORD`. The default is `admin`, and the server says so on
+  startup.
+- On Vercel, HTTPS is already in place. If you self-host and the site is
+  reachable beyond the hospital's internal network, put it behind HTTPS (a
+  reverse proxy such as nginx or Caddy): the session cookie is `HttpOnly`
+  and `SameSite=Strict`, but the password itself travels in the clear over
+  plain HTTP.
+- Self-hosting: keep the server running across reboots with a service
+  manager (`systemd`, `pm2`, or Windows Task Scheduler).
 
 ## Layout
 
 ```
-server.js                       HTTP server, API, static files (no dependencies)
-lib/db.js                       SQLite schema and queries
+vercel.json                     Vercel routing, headers and function settings
+api/[...path].js                Vercel entry point — all /api/* requests
+server.js                       Self-hosted server: the same API plus static files
+
+lib/api.js                      The API, shared by both entry points
+lib/store.js                    Picks Postgres or SQLite from the environment
+lib/store-postgres.js           Postgres schema and queries (Vercel)
+lib/store-sqlite.js             SQLite schema and queries (self-hosted)
 lib/scoring.js                  Raw / total / % rating and the 90% pass mark
+lib/forms.js                    Loads the extracted competency forms
+
 data/competencies.json          The 46 forms, extracted from the PDFs
-data/competency.db              The records (created on first run, not in git)
+var/competency.db               SQLite records (self-hosted only, not in git)
+
 public/index.html               Nurse: register and choose a competency
 public/exam.html                Nurse: the one-click exam
 public/admin.html               Admin: records, evaluator details, printing
 public/print.html               The printable competency forms
+
 tools/extract_competencies.py   PDF -> data/competencies.json
-test/smoke.js                   End-to-end test
+test/smoke.js                   End-to-end test across every deployment shape
+test/suite.js                   The checks themselves
+test/vercel-shim.js             Runs the Vercel function locally for the tests
 *.pdf                           The original competency forms (source of truth)
 ```

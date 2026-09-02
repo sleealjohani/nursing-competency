@@ -15,12 +15,14 @@ const filterIds = ['search', 'form', 'category', 'result', 'reviewed', 'from', '
 let rows = [];
 let selected = new Set();
 let editingId = null;
+let passwordFromEnv = false;
 
 start();
 
 async function start() {
-  const { signedIn } = await api('/api/admin/session');
-  if (signedIn) enterAdmin();
+  const session = await api('/api/admin/session');
+  passwordFromEnv = !!session.passwordFromEnv;
+  if (session.signedIn) enterAdmin();
   else loginView.hidden = false;
 }
 
@@ -60,7 +62,9 @@ document.getElementById('change-password').addEventListener('click', async (even
 function enterAdmin() {
   adminView.hidden = false;
   document.getElementById('logout').hidden = false;
-  document.getElementById('change-password').hidden = false;
+  // When ADMIN_PASSWORD is set (as on Vercel) the environment owns the
+  // password, so offering to change it here would only mislead.
+  document.getElementById('change-password').hidden = passwordFromEnv;
   for (const id of filterIds) {
     const node = document.getElementById(`f-${id}`);
     node.addEventListener(id === 'search' ? 'input' : 'change', debounce(load, 250));

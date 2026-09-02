@@ -1,7 +1,6 @@
 node_modules/
-data/competency.db
-data/competency.db-wal
-data/competency.db-shm
+var/
 *.log
 __pycache__/
 *.pyc
+.vercel/

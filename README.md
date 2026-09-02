@@ -1,1 +1,282 @@
-# nursing-competency
+# Nursing Competency Exam
+
+A website for the Alhadithah General Hospital Nursing Service Department.
+A nurse registers their details, sits a competency as an on-screen test —
+one item at a time, answered with a single click — and submits it. The
+administrator sees every submitted competency in one list, adds the
+evaluator's name, comments and dates, and prints the records as the
+hospital's competency forms, ready for signature.
+
+The 46 competency PDFs in this repository are the source of truth for the
+exam content. Nothing is typed twice: `tools/extract_competencies.py`
+reads them into `data/competencies.json`, and the site renders both the
+exam and the printed form from that file.
+
+## Does it need a database?
+
+Yes — and it has one. A submitted competency is a staff record that must
+outlive the browser that created it: the admin has to find it weeks later,
+add the evaluator's signature details, and print it. That cannot live in
+the page.
+
+Which database depends on where it runs, and the site picks automatically:
+
+| Where it runs | Storage | Why |
+| --- | --- | --- |
+| **Vercel** (or any serverless host) | **Postgres** | Serverless functions have no disk that survives a request, so records must live in a managed database |
+| **A hospital server or laptop** | **SQLite** file | One file, no database server, no npm packages at all |
+
+Set a Postgres connection string (`POSTGRES_URL` or `DATABASE_URL`) and it
+uses Postgres; leave it unset and it uses a SQLite file at
+`var/competency.db`. Nothing else changes — same pages, same API, same
+printed forms. The schema is created on first run either way.
+
+## Deploying to Vercel
+
+**1. Create the database.** In your Vercel project, open the **Storage**
+tab → **Create Database** → **Postgres** (the Neon option). Pick the same
+region as the project so the site stays fast. Vercel sets `POSTGRES_URL`
+in the project's environment automatically — nothing to copy.
+
+Any other Postgres works too (Supabase, Railway, a hospital-hosted
+server): add its connection string as `DATABASE_URL` instead.
+
+**2. Set the admin password.** In **Settings → Environment Variables**,
+add:
+
+| Name | Value |
+| --- | --- |
+| `ADMIN_PASSWORD` | a strong password of your choosing |
+
+**3. Deploy.** Import the repository (**Add New… → Project**) and deploy.
+There is no build step and no framework to pick — `vercel.json` already
+describes everything. The first request creates the database tables.
+
+That is all. `https://<your-project>.vercel.app/` is the nurse site and
+`/admin` is the records page.
+
+Notes:
+
+- `ADMIN_PASSWORD` is the source of truth once set: change it in Vercel
+  and redeploy to change the password. The admin page hides its own
+  **Change password** link while the variable is set, so the two cannot
+  disagree.
+- The exam content ships inside the deployment as `data/competencies.json`.
+  If a competency form changes, re-run the extractor (below), commit, and
+  Vercel redeploys.
+- Vercel serves HTTPS, so the admin session cookie is marked `Secure`
+  automatically.
+
+## Running it on your own server
+
+Use this to self-host on a hospital machine, or to work on the site
+locally.
+
+- **Node.js 22.5 or newer** — nothing else. Check with `node -v`.
+- Python 3 with `pypdf` only if you need to re-read the PDFs
+  (`pip install pypdf`), which is not needed for day-to-day use.
+
+```bash
+git clone <this repository>
+cd nursing-competency
+npm install                 # only needed if you will use Postgres
+
+# Set the admin password on first run (do not leave it as the default).
+ADMIN_PASSWORD='choose-a-strong-password' node server.js
+```
+
+Then open:
+
+| Page | Address | Who |
+| --- | --- | --- |
+| Competency exam | `http://<server>:3000/` | Nurses |
+| Admin records | `http://<server>:3000/admin` | Nursing administration |
+
+For other machines on the hospital network to reach it, use the server's
+address rather than `localhost`, e.g. `http://192.168.1.20:3000/`.
+
+Settings, all optional:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `PORT` | `3000` | Port to listen on |
+| `HOST` | `0.0.0.0` | Interface to bind |
+| `ADMIN_PASSWORD` | `admin` on first run | Admin password |
+| `POSTGRES_URL` / `DATABASE_URL` | unset | Use Postgres instead of a SQLite file |
+| `DB_FILE` | `var/competency.db` | Where the SQLite file lives |
+
+To change the password later, either use **Change password** in the admin
+header, or stop the server and run:
+
+```bash
+node server.js --set-password 'a-new-password'
+```
+
+## How a nurse uses it
+
+1. Opens the site and enters their **job number, name, job title, unit and
+   contract date**. Returning staff only type their job number — the rest
+   fills in.
+2. Picks a competency. All 46 are listed, grouped as Mandatory, Specific
+   and General, with a search box. Competencies already submitted show
+   their previous result.
+3. Sits the exam. One competency item fills the screen at a time with
+   **M (Met) / NM (Not Met) / NA (Not Applicable)** as big buttons — one
+   click answers it and moves straight to the next, so a whole form is a
+   run of single clicks. Keys `1` `2` `3` do the same, and `←` `→` move
+   between items.
+4. Reviews every answer on one page, changes any of them, and submits.
+5. Sees the result immediately: raw score, total score, % rating, and Met
+   or Not Met.
+
+An unfinished exam is kept in the browser, so closing the tab by accident
+does not lose the sitting. The form cannot be submitted until every item
+is answered.
+
+## How the administrator uses it
+
+Sign in at `/admin` to get every submitted competency in one table: nurse
+name, job number, unit, competency, score, % rating, result, and the exam
+date.
+
+- **Filter** by name or job number, competency, category, result, sign-off
+  state and exam date range.
+- **Details** opens the foot of the paper form for that record — the
+  evaluator's name and job number, evaluated date, comments, staff nurse
+  comments, needs-remedial and remedial date, conformed date — and marks
+  it signed off.
+- **Print selected forms** (or **Print all shown**) opens the chosen
+  records as the hospital's competency form, one per sheet, with the
+  nurse's answers ticked in the M / NM / NA columns and the scores and
+  dates filled in. Print the page, or save it as PDF, and the papers are
+  ready for signature.
+- **Export CSV** gives the same list as a spreadsheet.
+
+## How a competency is scored
+
+Straight from the forms:
+
+```
+Raw Score   = number of items rated Met
+Total Score = number of items, less those rated NA
+              ("NA entries to be deducted from the total score")
+% Rating    = Raw Score / Total Score x 100
+
+Met     = 90% - 100%
+Not Met = 89% and below, and remedial once
+```
+
+Two points worth confirming with the department:
+
+- **`equipment-checklist.pdf`** is not an M/NM/NA form. It rates 18 pieces
+  of equipment as **VT** (vendor training), **RD** (repeat demonstration
+  with little supervision) or **UEC** (uses the equipment independently),
+  with NA for equipment not in the area. The source form gives no point
+  values, so the site treats **UEC as the competent level** (scoring 1)
+  and VT and RD as not yet competent (scoring 0), with NA deducted as
+  usual. If the hospital scores it differently, change `MET_RATING` in
+  `lib/scoring.js`.
+- **`ambulance-transport-variant-2.pdf`** is an orphan continuation page
+  in the source scan: it carries only SKILLS and ATTITUDE, and its
+  KNOWLEDGE page is missing. It is published as its own competency, and
+  the note printed on the form says so. If it is really the same
+  competency as `ambulance-transport.pdf`, delete the PDF and re-run the
+  extraction.
+
+## Re-reading the PDFs
+
+Only needed if a competency form changes.
+
+```bash
+pip install pypdf
+python3 tools/extract_competencies.py     # rewrites data/competencies.json
+npm test
+```
+
+The extractor checks each form as it goes and reports any whose title,
+sections or item numbering did not come out cleanly.
+
+## Tests
+
+```bash
+npm test                                   # SQLite and the Vercel code path
+TEST_DATABASE_URL=postgres://... npm test  # also against real Postgres
+```
+
+Walks the whole journey — every form loads with unique items,
+registration, rejected and accepted submissions, the NA deduction, the 90%
+pass mark, the equipment scale, admin authentication, filters, evaluator
+details, the print payload, CSV export, deletion and the login lockout —
+and runs it against every way the site can be deployed:
+
+1. `server.js` on SQLite (self-hosted)
+2. `api/[...path].js` on SQLite (the Vercel function's own code)
+3. the same, with the URL shape a Vercel rewrite delivers
+4. `server.js` on Postgres (the storage Vercel uses)
+5. `api/[...path].js` on Postgres (the deployed combination)
+
+Postgres is skipped unless `TEST_DATABASE_URL` is set, so `npm test` works
+with no database to hand.
+
+## Backups
+
+The records hold staff names, job numbers and assessment results, so keep
+backups somewhere access-controlled.
+
+**On Vercel (Postgres).** Neon and Vercel Postgres keep automatic
+point-in-time backups; check the retention on your plan. For a copy you
+hold yourself:
+
+```bash
+pg_dump "$POSTGRES_URL" > competency-backup.sql
+```
+
+**Self-hosted (SQLite).** Stop the server and copy the file, with `-wal`
+and `-shm` alongside it if present:
+
+```bash
+cp var/competency.db* /path/to/backup/
+```
+
+Restore either by loading the dump or copying the file back.
+
+## Before putting it in front of staff
+
+- Set `ADMIN_PASSWORD`. The default is `admin`, and the server says so on
+  startup.
+- On Vercel, HTTPS is already in place. If you self-host and the site is
+  reachable beyond the hospital's internal network, put it behind HTTPS (a
+  reverse proxy such as nginx or Caddy): the session cookie is `HttpOnly`
+  and `SameSite=Strict`, but the password itself travels in the clear over
+  plain HTTP.
+- Self-hosting: keep the server running across reboots with a service
+  manager (`systemd`, `pm2`, or Windows Task Scheduler).
+
+## Layout
+
+```
+vercel.json                     Vercel routing, headers and function settings
+api/[...path].js                Vercel entry point — all /api/* requests
+server.js                       Self-hosted server: the same API plus static files
+
+lib/api.js                      The API, shared by both entry points
+lib/store.js                    Picks Postgres or SQLite from the environment
+lib/store-postgres.js           Postgres schema and queries (Vercel)
+lib/store-sqlite.js             SQLite schema and queries (self-hosted)
+lib/scoring.js                  Raw / total / % rating and the 90% pass mark
+lib/forms.js                    Loads the extracted competency forms
+
+data/competencies.json          The 46 forms, extracted from the PDFs
+var/competency.db               SQLite records (self-hosted only, not in git)
+
+public/index.html               Nurse: register and choose a competency
+public/exam.html                Nurse: the one-click exam
+public/admin.html               Admin: records, evaluator details, printing
+public/print.html               The printable competency forms
+
+tools/extract_competencies.py   PDF -> data/competencies.json
+test/smoke.js                   End-to-end test across every deployment shape
+test/suite.js                   The checks themselves
+test/vercel-shim.js             Runs the Vercel function locally for the tests
+*.pdf                           The original competency forms (source of truth)
+```

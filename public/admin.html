@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Nursing Competency Records</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <h1>Competency Records — Admin</h1>
+    <div class="sub">Alhadithah General Hospital &middot; Nursing Service Department</div>
+  </div>
+  <div class="spacer"></div>
+  <a href="/">Nurse site</a>
+  <a href="#" id="change-password" hidden>Change password</a>
+  <a href="#" id="logout" hidden>Sign out</a>
+</header>
+
+<!-- Sign in -->
+<main class="wrap narrow" id="login-view" hidden>
+  <section class="card">
+    <h2>Admin sign in</h2>
+    <p class="hint">Enter the administrator password to view submitted competencies.</p>
+    <div id="login-msg"></div>
+    <form id="login-form">
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn-primary" type="submit">Sign in</button>
+    </form>
+  </section>
+</main>
+
+<!-- Records -->
+<main class="wrap" id="admin-view" hidden style="max-width:1280px">
+  <div id="admin-msg"></div>
+  <div class="stats" id="stats"></div>
+
+  <section class="card">
+    <h2>Submitted competencies</h2>
+    <p class="hint">Filter the list, fill in the evaluator name and dates, then
+      print the selected records as the hospital's competency forms.</p>
+    <div class="filters">
+      <div>
+        <label for="f-search">Search</label>
+        <input id="f-search" placeholder="Name, job number, unit, competency">
+      </div>
+      <div>
+        <label for="f-form">Competency</label>
+        <select id="f-form"><option value="">All competencies</option></select>
+      </div>
+      <div>
+        <label for="f-category">Category</label>
+        <select id="f-category">
+          <option value="">All</option><option>Mandatory</option>
+          <option>Specific</option><option>General</option>
+        </select>
+      </div>
+      <div>
+        <label for="f-result">Result</label>
+        <select id="f-result">
+          <option value="">All</option><option>Met</option><option>Not Met</option>
+        </select>
+      </div>
+      <div>
+        <label for="f-reviewed">Review state</label>
+        <select id="f-reviewed">
+          <option value="">All</option>
+          <option value="no">Not signed off</option>
+          <option value="yes">Signed off</option>
+        </select>
+      </div>
+      <div>
+        <label for="f-from">Exam date from</label>
+        <input id="f-from" type="date">
+      </div>
+      <div>
+        <label for="f-to">Exam date to</label>
+        <input id="f-to" type="date">
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <button type="button" id="f-clear">Clear</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" style="padding:0;overflow:hidden">
+    <div class="table-scroll">
+      <table class="data">
+        <thead><tr>
+          <th style="width:34px"><input type="checkbox" id="select-all" title="Select all shown"></th>
+          <th>Nurse</th><th>Job No.</th><th>Unit</th><th>Competency</th>
+          <th>Category</th><th class="num">Score</th><th class="num">%</th>
+          <th>Result</th><th>Exam Date</th><th>Evaluator</th><th>Signed off</th>
+          <th style="width:150px"></th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="no-rows" hidden>No submissions match these filters.</p>
+    <div class="sticky-actions">
+      <strong id="selected-count">0 selected</strong>
+      <button type="button" class="btn-primary" id="print-selected">Print selected forms</button>
+      <button type="button" id="print-all">Print all shown</button>
+      <button type="button" id="export-csv">Export CSV</button>
+      <span class="spacer"></span>
+      <span class="hint" style="margin:0" id="page-info"></span>
+    </div>
+  </section>
+</main>
+
+<!-- Evaluator details -->
+<dialog id="edit-dialog">
+  <form method="dialog" id="edit-form">
+    <div class="dlg-body">
+      <h2 id="edit-title" style="margin-top:0"></h2>
+      <p class="hint" id="edit-sub"></p>
+      <div class="grid2">
+        <div class="field">
+          <label for="e-evaluator">Evaluator's Name</label>
+          <input id="e-evaluator">
+        </div>
+        <div class="field">
+          <label for="e-evaluator-job">Evaluator's Job Number</label>
+          <input id="e-evaluator-job">
+        </div>
+        <div class="field">
+          <label for="e-evaluated-date">Evaluated Date</label>
+          <input id="e-evaluated-date" type="date">
+        </div>
+        <div class="field">
+          <label for="e-conformed-date">Conformed Date (staff)</label>
+          <input id="e-conformed-date" type="date">
+        </div>
+        <div class="field">
+          <label for="e-remedial">Needs Remedial</label>
+          <select id="e-remedial"><option value="0">NO</option><option value="1">YES</option></select>
+        </div>
+        <div class="field">
+          <label for="e-remedial-date">Remedial Date</label>
+          <input id="e-remedial-date" type="date">
+        </div>
+      </div>
+      <div class="field">
+        <label for="e-comments">Evaluator's Comments / Recommendations</label>
+        <textarea id="e-comments"></textarea>
+      </div>
+      <div class="field">
+        <label for="e-staff-comments">Staff Nurse Comments</label>
+        <textarea id="e-staff-comments"></textarea>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="e-reviewed" style="margin-right:7px">
+          Mark as signed off</label>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" class="btn-danger" id="edit-delete">Delete record</button>
+      <span style="flex:1"></span>
+      <button type="button" id="edit-cancel">Cancel</button>
+      <button type="button" class="btn-primary" id="edit-save">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/js/common.js"></script>
+<script src="/js/admin.js"></script>
+</body>
+</html>

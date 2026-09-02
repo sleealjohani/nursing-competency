@@ -1,0 +1,207 @@
+/* The printed competency form, laid out to match the hospital's paper form. */
+
+:root {
+  --ink: #000;
+  --rule: #000;
+}
+
+body {
+  margin: 0;
+  background: #808a94;
+  color: var(--ink);
+  font: 10pt/1.35 "Times New Roman", Georgia, serif;
+}
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #0b4459;
+  color: #fff;
+  padding: 11px 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  font: 14px/1.4 "Segoe UI", system-ui, sans-serif;
+}
+.toolbar button {
+  font: inherit;
+  font-weight: 600;
+  padding: 7px 15px;
+  border-radius: 6px;
+  border: 1px solid #2a6d88;
+  background: #fff;
+  color: #0b4459;
+  cursor: pointer;
+}
+.toolbar button.ghost { background: transparent; color: #cfe6f0; }
+.toolbar .spacer { flex: 1; }
+.toolbar .count { opacity: .85; font-size: 13px; }
+
+/* One A4 sheet per competency form. */
+.sheet {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 12mm 12mm 10mm;
+  margin: 14px auto;
+  background: #fff;
+  box-shadow: 0 3px 16px rgba(0, 0, 0, .3);
+  page-break-after: always;
+  break-after: page;
+}
+.sheet:last-child { page-break-after: auto; break-after: auto; }
+
+.hdr { text-align: center; line-height: 1.25; }
+.hdr .hosp { font-size: 12pt; font-weight: bold; }
+.hdr .dept { font-size: 10.5pt; }
+.hdr .cat {
+  font-size: 10.5pt;
+  font-weight: bold;
+  letter-spacing: .5pt;
+  margin-top: 1.2mm;
+}
+.hdr .title {
+  font-size: 12pt;
+  font-weight: bold;
+  text-decoration: underline;
+  margin: 1.6mm 0 2mm;
+}
+
+table { width: 100%; border-collapse: collapse; }
+.bordered th, .bordered td { border: 0.7pt solid var(--rule); padding: 0.6mm 1.4mm; }
+
+/* Nurse details block */
+.details td { padding: 0.5mm 1.5mm; font-size: 9pt; }
+.details .lbl { font-weight: bold; white-space: nowrap; width: 1%; }
+.details .val { border-bottom: 0.7pt solid var(--rule); }
+
+.keybox {
+  border: 0.7pt solid var(--rule);
+  padding: 1mm 1.5mm;
+  margin: 1.2mm 0;
+  font-size: 7.5pt;
+  line-height: 1.28;
+}
+.keybox b { font-weight: bold; }
+.keybox .line + .line { margin-top: .5mm; }
+/* The equipment scale carries four long definitions; set it a shade tighter. */
+.keybox-equipment { font-size: 7pt; line-height: 1.25; }
+
+.note {
+  font-size: 8pt;
+  font-style: italic;
+  margin: 0 0 2mm;
+  padding: 1.2mm 1.6mm;
+  border-left: 1.5pt solid #555;
+}
+
+/* Competency table */
+.items { font-size: 8.5pt; line-height: 1.25; }
+.items th {
+  text-align: center;
+  font-weight: bold;
+  font-size: 8.5pt;
+  vertical-align: middle;
+}
+.items th.competencies { text-align: center; }
+.items .rate-col { width: 13mm; }
+.items td.txt { vertical-align: top; }
+.items td.no {
+  width: 8mm;
+  text-align: right;
+  vertical-align: top;
+  white-space: nowrap;
+}
+.items td.mark {
+  text-align: center;
+  vertical-align: middle;
+  font-size: 11pt;
+  font-weight: bold;
+}
+.items tr.section td {
+  font-weight: bold;
+  background: #e8e8e8;
+  font-size: 8.5pt;
+  padding: 0.5mm 1.4mm;
+}
+.items tr.raw td { font-weight: bold; }
+.items tr.raw td.mark { font-size: 10pt; }
+
+/* A long form breaks across sheets; keep rows whole. */
+.items tr { page-break-inside: avoid; break-inside: avoid; }
+
+/* Score, comments and signatures move to a new page as one block. */
+.formfoot { page-break-inside: avoid; break-inside: avoid; }
+
+.formula {
+  margin: 1.2mm 0;
+  font-size: 8.5pt;
+  display: flex;
+  align-items: center;
+  gap: 4mm;
+  flex-wrap: wrap;
+}
+.frac { display: inline-block; text-align: center; vertical-align: middle; }
+.frac .top { border-bottom: 0.7pt solid var(--rule); padding: 0 2mm; }
+.frac .bot { padding: 0 2mm; }
+.result-box {
+  border: 0.7pt solid var(--rule);
+  padding: 1mm 3mm;
+  font-weight: bold;
+}
+.remedial { margin-left: auto; font-size: 9pt; }
+.box {
+  display: inline-block;
+  width: 4mm;
+  height: 4mm;
+  border: 0.7pt solid var(--rule);
+  text-align: center;
+  line-height: 3.6mm;
+  font-weight: bold;
+  vertical-align: -0.8mm;
+  margin: 0 1mm;
+}
+
+.comments { margin-top: 1.2mm; font-size: 8.5pt; }
+.comments .label { font-weight: bold; }
+.comments .writing {
+  border: 0.7pt solid var(--rule);
+  min-height: 6.5mm;
+  padding: 1mm 1.4mm;
+  white-space: pre-wrap;
+  margin-top: 0.5mm;
+}
+
+.signatures { margin-top: 2mm; font-size: 8.5pt; }
+.sig-row { display: flex; gap: 8mm; margin-top: 2mm; }
+.sig { flex: 1; }
+.sig .line {
+  border-bottom: 0.7pt solid var(--rule);
+  min-height: 4mm;
+  padding-bottom: .4mm;
+}
+.sig .cap { font-size: 7.5pt; text-align: center; margin-top: .8mm; }
+
+.pagefoot {
+  margin-top: 1.2mm;
+  font-size: 7.5pt;
+  color: #444;
+  display: flex;
+  justify-content: space-between;
+}
+
+@media print {
+  @page { size: A4; margin: 10mm; }
+  body { background: #fff; }
+  .toolbar { display: none; }
+  .sheet {
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  /* Repeat the column headers when a form runs over a page. */
+  thead { display: table-header-group; }
+}

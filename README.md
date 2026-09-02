@@ -55,6 +55,16 @@ describes everything. The first request creates the database tables.
 That is all. `https://<your-project>.vercel.app/` is the nurse site and
 `/admin` is the records page.
 
+**Checking a deployment.** Open `/api/health`. A working site answers:
+
+```json
+{ "ok": true, "storage": "postgres", "connected": true, "forms": 46, "items": 792 }
+```
+
+If it answers `503` with `"storage": "none"`, step 1 was skipped — the
+project has no database yet. The message names what to do, and both the
+nurse and admin pages show it rather than failing silently.
+
 Notes:
 
 - `ADMIN_PASSWORD` is the source of truth once set: change it in Vercel

@@ -16,6 +16,8 @@ let nurse = null;
 
 document.getElementById('examDate').value = today();
 
+checkStorageHealth('register-msg');
+
 // Prefill from a previous visit on this device.
 const saved = nurseSession.get();
 if (saved) {

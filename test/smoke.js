@@ -23,6 +23,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
+const assert = require('node:assert');
 
 const { buildChecks } = require('./suite');
 
@@ -97,6 +98,59 @@ async function resetPostgres(url) {
   await client.end();
 }
 
+/**
+ * A serverless deployment with no database must say so plainly, rather than
+ * falling back to a SQLite file it cannot write.
+ */
+async function checkMisconfigured() {
+  console.log('\n6. serverless with no database configured');
+  const port = 3994;
+  const base = `http://127.0.0.1:${port}`;
+  const child = spawn(process.execPath, [path.join(ROOT, 'test/vercel-shim.js')], {
+    env: {
+      ...process.env, PORT: String(port), VERCEL: '1',
+      DATABASE_URL: '', POSTGRES_URL: '', POSTGRES_URL_NON_POOLING: '', DB_FILE: '',
+    },
+    stdio: ['ignore', 'ignore', 'ignore'],
+  });
+
+  const checks = [
+    ['health reports the missing database', async () => {
+      const response = await fetch(`${base}/api/health`);
+      const body = await response.json();
+      assert.strictEqual(response.status, 503);
+      assert.strictEqual(body.ok, false);
+      assert.strictEqual(body.storage, 'none');
+      assert.match(body.error, /Storage tab|DATABASE_URL/);
+    }],
+    ['other routes explain it too, as 503 not 500', async () => {
+      const response = await fetch(`${base}/api/competencies`);
+      assert.strictEqual(response.status, 503);
+      assert.match((await response.json()).error, /No database is configured/);
+    }],
+  ];
+
+  try {
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      try { await fetch(`${base}/api/health`); break; } catch {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+    for (const [name, fn] of checks) {
+      total += 1;
+      try {
+        await fn();
+        console.log(`  ok    ${name}`);
+      } catch (error) {
+        failures += 1;
+        console.error(`  FAIL  ${name}\n        ${error.message}`);
+      }
+    }
+  } finally {
+    child.kill();
+  }
+}
+
 async function main() {
   console.log('\nNursing Competency Exam — smoke test');
 
@@ -149,6 +203,8 @@ async function main() {
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
+
+    await checkMisconfigured();
 
   console.log(`\n${total - failures}/${total} checks passed`
     + `${failures ? ` — ${failures} FAILED` : ''}\n`);

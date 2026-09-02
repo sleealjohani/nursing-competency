@@ -20,6 +20,10 @@ let passwordFromEnv = false;
 start();
 
 async function start() {
+  if (!await checkStorageHealth('login-msg')) {
+    loginView.hidden = false;
+    return;
+  }
   const session = await api('/api/admin/session');
   passwordFromEnv = !!session.passwordFromEnv;
   if (session.signedIn) enterAdmin();

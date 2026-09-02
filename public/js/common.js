@@ -74,6 +74,30 @@ function resultBadge(result) {
   return el('span', { class: `badge ${cls}`, text: result });
 }
 
+/**
+ * Warns up front when the deployment has no working database, rather than
+ * letting the first save fail with nothing to act on.
+ *
+ * @returns {Promise<boolean>} true when storage is healthy
+ */
+async function checkStorageHealth(containerId) {
+  try {
+    const health = await api('/api/health');
+    if (health.ok) return true;
+    showMessage(containerId,
+      `This site is not finished setting up. ${health.error || ''}`.trim(),
+      'error');
+    return false;
+  } catch (error) {
+    showMessage(containerId,
+      error.message.includes('database') || error.message.includes('Postgres')
+        ? `This site is not finished setting up. ${error.message}`
+        : `Cannot reach the server: ${error.message}`,
+      'error');
+    return false;
+  }
+}
+
 /** The nurse's identity for this browser, so they need not retype it. */
 const nurseSession = {
   key: 'competency.nurse',

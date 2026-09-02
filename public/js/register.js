@@ -149,8 +149,12 @@ function renderList() {
     }, [
       categoryBadge(form.category),
       el('span', { class: 'grow' }, [
-        // The competency title is the hospital's own wording, never translated.
+        // The competency title is the hospital's own wording, shown as it is.
         sourceText(el('div', { class: 't', text: form.title })),
+        (isRtl() && form.title_ar)
+          ? el('div', { class: 'aid-text small', dir: 'rtl', lang: 'ar',
+              text: form.title_ar })
+          : null,
         el('div', {
           class: 'm',
           text: t('picker.itemsSummary', {

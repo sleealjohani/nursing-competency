@@ -34,9 +34,15 @@ printed forms. The schema is created on first run either way.
 ## Deploying to Vercel
 
 **1. Create the database.** In your Vercel project, open the **Storage**
-tab → **Create Database** → **Postgres** (the Neon option). Pick the same
-region as the project so the site stays fast. Vercel sets `POSTGRES_URL`
-in the project's environment automatically — nothing to copy.
+tab → **Create Database**. Under *Marketplace Database Providers* choose
+**Neon** (Serverless Postgres) and continue. Pick the same region as the
+project so the site stays fast, and connect it to the project for all
+environments. Vercel and Neon then set the connection variables
+automatically — nothing to copy.
+
+The site reads `POSTGRES_URL` or `DATABASE_URL`, preferring the **pooled**
+endpoint: each serverless invocation opens its own connection, so a direct
+one would exhaust the database's connection limit under load.
 
 Any other Postgres works too (Supabase, Railway, a hospital-hosted
 server): add its connection string as `DATABASE_URL` instead.

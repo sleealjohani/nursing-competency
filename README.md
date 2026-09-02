@@ -54,6 +54,12 @@ add:
 | --- | --- |
 | `ADMIN_PASSWORD` | a strong password of your choosing |
 
+**Then redeploy.** Vercel only gives a variable to builds that run after it
+was set, so adding it does not change the running site on its own:
+Deployments → the latest one → ⋯ → **Redeploy**. Until that happens the
+site keeps whatever password it already had — on a fresh install that is
+the default `admin`, and the admin page says so in red once you sign in.
+
 **3. Deploy.** Import the repository (**Add New… → Project**) and deploy.
 There is no build step and no framework to pick — `vercel.json` already
 describes everything. The first request creates the database tables.

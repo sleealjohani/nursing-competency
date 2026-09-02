@@ -16,6 +16,7 @@ let rows = [];
 let selected = new Set();
 let editingId = null;
 let passwordFromEnv = false;
+let usingDefaultPassword = false;
 
 mountLanguageToggle(document.getElementById('lang-slot'));
 
@@ -28,6 +29,7 @@ async function start() {
   }
   const session = await api('/api/admin/session');
   passwordFromEnv = !!session.passwordFromEnv;
+  usingDefaultPassword = !!session.usingDefaultPassword;
   if (session.signedIn) enterAdmin();
   else loginView.hidden = false;
 }
@@ -41,6 +43,9 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
       body: { password: document.getElementById('password').value },
     });
     loginView.hidden = true;
+    const session = await api('/api/admin/session');
+    usingDefaultPassword = !!session.usingDefaultPassword;
+    passwordFromEnv = !!session.passwordFromEnv;
     enterAdmin();
   } catch (error) {
     showMessage('login-msg', errorText(error));
@@ -71,6 +76,9 @@ function enterAdmin() {
   // When ADMIN_PASSWORD is set (as on Vercel) the environment owns the
   // password, so offering to change it here would only mislead.
   document.getElementById('change-password').hidden = passwordFromEnv;
+  if (usingDefaultPassword) {
+    showMessage('admin-msg', t('admin.defaultPassword'), 'error');
+  }
   for (const id of filterIds) {
     const node = document.getElementById(`f-${id}`);
     node.addEventListener(id === 'search' ? 'input' : 'change', debounce(load, 250));

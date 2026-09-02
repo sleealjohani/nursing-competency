@@ -308,3 +308,33 @@ dialog .dlg-foot { padding: 14px 22px; border-top: 1px solid var(--line); displa
 [dir="rtl"] input[type="checkbox"] { margin-left: 7px; margin-right: 0; }
 [dir="rtl"] .msg, [dir="rtl"] .empty { text-align: right; }
 [dir="rtl"] .empty { text-align: center; }
+
+/* The Arabic reading aid: clearly secondary to the source wording above it,
+   never a replacement for it. */
+.q-aid {
+  margin: -8px 0 20px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: #f2f7fa;
+  border-inline-start: 3px solid var(--brand);
+}
+.aid-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: .2px;
+  margin-bottom: 5px;
+}
+.aid-text {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink);
+  text-align: right;
+}
+.aid-text.small {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.form-item .aid-text.small { margin-top: 2px; }

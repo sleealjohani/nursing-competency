@@ -1,5 +1,6 @@
 # The source competency PDFs are the input to tools/extract_competencies.py,
-# not something the site serves. data/competencies.json is what ships.
+# not something the site serves. data/competencies.json and its Arabic
+# overlay data/competencies.ar.json are what ship.
 *.pdf
 test/
 tools/

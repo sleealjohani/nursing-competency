@@ -6,13 +6,16 @@
  * What is translated: the site itself — buttons, labels, headings, messages,
  * the admin table.
  *
- * What is never translated: anything extracted from the competency PDFs —
- * the form titles, section names, competency item wording, and the M / NM /
- * NA rating codes. Those are the hospital's assessment wording and must read
- * exactly as they do on the paper form. In Arabic they are shown with
- * dir="ltr" so the English renders correctly inside a right-to-left page,
- * and short Arabic glosses are offered alongside the fixed vocabulary as a
- * reading aid, never as a replacement.
+ * What is never REPLACED: anything extracted from the competency PDFs — the
+ * form titles, section names, competency item wording, and the M / NM / NA
+ * rating codes. Those are the hospital's assessment wording and must read
+ * exactly as they do on the paper form, so they are shown with dir="ltr" and
+ * stay in front of the reader.
+ *
+ * Arabic renderings of the items live in data/competencies.ar.json and are
+ * shown BESIDE that source wording as a reading aid — under the English item
+ * in the exam, and never on the printed form or in a stored submission.
+ * Short glosses do the same for the fixed vocabulary (I. KNOWLEDGE, M, NM).
  */
 
 const STRINGS = {
@@ -94,6 +97,10 @@ const STRINGS = {
     'exam.submit': 'Submit competency',
     'exam.submitting': 'Submitting…',
     'exam.itemsLeft': '{count} item(s) left',
+    'exam.aidLabel': 'Arabic translation (reading aid — the English above is '
+      + 'the assessed wording)',
+    'exam.hideAid': 'Hide Arabic',
+    'exam.showAid': 'Show Arabic',
     'exam.noneSelected': 'No competency selected.',
     'exam.registerFirst': 'Please register your details first.',
 
@@ -308,6 +315,10 @@ const STRINGS = {
     'exam.submit': 'إرسال الكفاءة',
     'exam.submitting': 'جارٍ الإرسال…',
     'exam.itemsLeft': 'بقي {count} بندًا',
+    'exam.aidLabel': 'الترجمة العربية (للاستئناس — النص الإنجليزي أعلاه هو '
+      + 'المعتمد في التقييم)',
+    'exam.hideAid': 'إخفاء العربية',
+    'exam.showAid': 'إظهار العربية',
     'exam.noneSelected': 'لم يتم اختيار أي كفاءة.',
     'exam.registerFirst': 'يرجى تسجيل بياناتك أولًا.',
 

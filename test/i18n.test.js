@@ -27,6 +27,7 @@ const STRINGS = (() => {
 })();
 
 const forms = require('../data/competencies.json').forms;
+const translations = require('../data/competencies.ar.json').forms;
 
 let failures = 0;
 let total = 0;
@@ -133,6 +134,74 @@ check('every t() key used in the scripts is defined', () => {
     }
   }
   assert.deepStrictEqual([...missing], [], `undefined keys: ${[...missing]}`);
+});
+
+check('every competency item has an Arabic rendering', () => {
+  let items = 0;
+  for (const form of forms) {
+    const entry = translations[form.id];
+    assert.ok(entry, `${form.id} has no Arabic`);
+    assert.ok(entry.title && /[\u0600-\u06FF]/.test(entry.title),
+      `${form.id} has no Arabic title`);
+    form.sections.forEach((section, index) => {
+      for (const item of section.items) {
+        const key = `${index}.${item.no}`;
+        const text = entry.items[key];
+        assert.ok(text && text.trim(), `${form.id}/${key} has no Arabic`);
+        assert.ok(/[\u0600-\u06FF]/.test(text),
+          `${form.id}/${key} is not Arabic: ${text}`);
+        items += 1;
+      }
+    });
+  }
+  assert.strictEqual(items, 792, `expected 792 items, checked ${items}`);
+});
+
+check('the Arabic overlay adds nothing the extraction does not have', () => {
+  // A stray key would mean the aid and the record had drifted apart.
+  for (const [formId, entry] of Object.entries(translations)) {
+    const form = forms.find((f) => f.id === formId);
+    assert.ok(form, `${formId} is not a competency in the extraction`);
+    const valid = new Set();
+    form.sections.forEach((section, index) => {
+      for (const item of section.items) valid.add(`${index}.${item.no}`);
+    });
+    for (const key of Object.keys(entry.items)) {
+      assert.ok(valid.has(key), `${formId}: "${key}" is not an item on this form`);
+    }
+  }
+  assert.strictEqual(Object.keys(translations).length, forms.length);
+});
+
+check('the English extraction is never overwritten by the aid', () => {
+  // The record must still read exactly as the PDF; the Arabic is a separate
+  // file and the two must not have been merged.
+  const raw = fs.readFileSync(
+    path.join(ROOT, 'data', 'competencies.json'), 'utf8');
+  assert.ok(!/[\u0600-\u06FF]/.test(raw),
+    'Arabic text has leaked into data/competencies.json');
+  for (const form of forms) {
+    for (const section of form.sections) {
+      for (const item of section.items) {
+        assert.ok(/[A-Za-z]/.test(item.text),
+          `${form.id} item ${item.no} lost its English wording`);
+      }
+    }
+  }
+});
+
+check('the printed form carries no Arabic rendering', () => {
+  const js = fs.readFileSync(path.join(PUBLIC, 'js/print.js'), 'utf8');
+  assert.ok(!/translation|arabic|aid/i.test(js),
+    'print.js must render the source wording only');
+});
+
+check('a submission stores the English wording only', () => {
+  const api = fs.readFileSync(path.join(ROOT, 'lib', 'api.js'), 'utf8');
+  const submit = api.slice(api.indexOf("pathname === '/api/submissions'"),
+    api.indexOf('/api/submissions/'));
+  assert.ok(!/translation/.test(submit),
+    'a stored submission must not carry the reading aid');
 });
 
 check('the pages start in Arabic and declare direction', () => {

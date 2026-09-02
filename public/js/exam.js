@@ -12,7 +12,9 @@ const formId = params.get('form');
 
 const nurse = nurseSession.get();
 let form = null;
+let translation = null;
 let ratings = [];
+let showAid = true;
 let items = [];          // flattened { key, sectionName, no, text, indexInSection }
 let answers = {};
 let position = 0;
@@ -41,6 +43,7 @@ async function init() {
   try {
     const data = await api(`/api/competencies/${encodeURIComponent(formId)}`);
     form = data.form;
+    translation = data.translation;
     ratings = data.ratings;
   } catch (error) {
     return fail(errorText(error));
@@ -57,6 +60,7 @@ async function init() {
         text: item.text,
         indexInSection: i,
         sectionCount: section.items.length,
+        arabic: translation?.items?.[`${sectionIndex}.${item.no}`] || '',
       });
     });
   });
@@ -70,6 +74,10 @@ async function init() {
   const titleNode = document.getElementById('exam-title');
   titleNode.textContent = form.title;
   sourceText(titleNode);
+  if (isRtl() && translation) {
+    aidToggle.hidden = false;
+    aidToggle.textContent = t('exam.hideAid');
+  }
   document.getElementById('keyhint').textContent = t('exam.keyHint', {
     keys: ratings.map((r, i) => `${i + 1}=${r}`).join('  '),
   });
@@ -126,10 +134,11 @@ function renderQuestion() {
     no: item.no, count: item.sectionCount,
     index: position + 1, total: items.length,
   });
-  // The competency item itself is quoted from the PDF, never translated.
+  // The competency item itself is quoted from the PDF and stays as written.
   const textNode = document.getElementById('q-text');
   textNode.textContent = item.text;
   sourceText(textNode);
+  renderAid(item);
 
   nodes.rateRow.innerHTML = '';
   ratings.forEach((rating, index) => {
@@ -157,6 +166,22 @@ function renderQuestion() {
     `${arrowBack} ${t('exam.backToQuestions')}`;
 
   updateProgress();
+}
+
+/**
+ * The Arabic rendering of the item, shown under the English rather than in
+ * place of it: the English is the wording the nurse is assessed against and
+ * the wording that is printed, so it stays in front of them.
+ */
+function renderAid(item) {
+  const host = document.getElementById('q-aid');
+  host.innerHTML = '';
+  host.hidden = !(isRtl() && item.arabic && showAid);
+  if (host.hidden) return;
+  host.append(
+    el('div', { class: 'aid-label', text: t('exam.aidLabel') }),
+    el('div', { class: 'aid-text', dir: 'rtl', lang: 'ar', text: item.arabic }),
+  );
 }
 
 function updateProgress() {
@@ -188,6 +213,13 @@ document.getElementById('prev').addEventListener('click', () => {
 document.getElementById('next').addEventListener('click', () => {
   if (position < items.length - 1) { position += 1; renderQuestion(); }
   else showReview();
+});
+
+const aidToggle = document.getElementById('toggle-aid');
+aidToggle.addEventListener('click', () => {
+  showAid = !showAid;
+  aidToggle.textContent = showAid ? t('exam.hideAid') : t('exam.showAid');
+  if (nodes.review.hidden) showReview(); else renderQuestion();
 });
 
 document.getElementById('toggle-view').addEventListener('click', () => {
@@ -254,10 +286,16 @@ function showReview() {
       onclick: () => { position = index; renderQuestion(); },
     }, [
       el('span', { class: 'n', dir: 'ltr', text: `${item.no}.` }),
-      sourceText(el('span', {
-        class: 'grow',
-        text: item.text.length > 190 ? `${item.text.slice(0, 190)}…` : item.text,
-      })),
+      el('span', { class: 'grow' }, [
+        sourceText(el('div', {
+          text: item.text.length > 190 ? `${item.text.slice(0, 190)}…` : item.text,
+        })),
+        (isRtl() && item.arabic && showAid)
+          ? el('div', { class: 'aid-text small', dir: 'rtl', lang: 'ar',
+              text: item.arabic.length > 190
+                ? `${item.arabic.slice(0, 190)}…` : item.arabic })
+          : null,
+      ]),
       el('span', { class: `r r-${rating || 'none'}`, dir: 'ltr',
         text: rating || '—' }),
     ]));

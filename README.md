@@ -136,14 +136,32 @@ header to switch to English. The choice is remembered per browser.
 What is translated is the site: buttons, labels, headings, messages, the
 admin table, dates and the result wording.
 
-What is **never** translated is anything taken from the competency PDFs —
-the form titles, the section names, the wording of every competency item,
-and the M / NM / NA rating codes. That is the hospital's assessment
-wording, and it appears exactly as the PDF has it. In Arabic those parts
-are marked left-to-right so the English reads correctly on a
-right-to-left page, and short Arabic glosses sit beside the fixed
-vocabulary (`I. KNOWLEDGE — المعرفة`, `M — مستوفى`) as a reading aid, never
-as a replacement.
+**The questions are available in Arabic too.** Every one of the 792
+competency items has an Arabic rendering, shown under the English in the
+exam and under each item in the review list, in a clearly labelled block:
+*الترجمة العربية (للاستئناس — النص الإنجليزي أعلاه هو المعتمد في التقييم)*.
+A button in the exam header hides or shows it.
+
+What is **never replaced** is the wording taken from the competency PDFs.
+The English item stays above the Arabic, in the reader's eye, because it is
+the wording the nurse is assessed against and the wording that gets
+printed. The same holds for the form titles, section names and the
+M / NM / NA rating codes; in Arabic those are marked left-to-right so the
+English reads correctly on a right-to-left page, with short Arabic glosses
+beside the fixed vocabulary (`I. KNOWLEDGE — المعرفة`, `M — مستوفى`).
+
+The Arabic lives in its own file, `data/competencies.ar.json`, keyed by
+form id and by the same item keys the answers use. The extraction in
+`data/competencies.json` is never touched — a test fails if a single
+Arabic character appears in it. Nothing Arabic is stored in a submission
+or printed on a form.
+
+> **The Arabic renderings were produced by AI and have not been reviewed by
+> a clinician.** They are a reading aid, and the English remains the
+> assessed wording, but the Nursing Service Department should read them
+> through before the site goes in front of staff. To correct one, edit its
+> entry in `data/competencies.ar.json`; `python3 tools/translations.py check`
+> confirms the file still lines up with the extraction.
 
 **The printed form does not change with the language.** It is the
 hospital's own document, so it is always reproduced left-to-right, in
@@ -154,8 +172,15 @@ checked by the test suite.
 Scores, percentages, job numbers and dates always use Latin digits, so a
 record reads the same to everyone handling the paper afterwards.
 
-To change any wording, edit `public/js/i18n.js`; the two languages are
-side by side and `npm test` fails if a key is missing from either.
+To change interface wording, edit `public/js/i18n.js`; the two languages
+are side by side and `npm test` fails if a key is missing from either. To
+change a question's Arabic, edit `data/competencies.ar.json`.
+
+```bash
+python3 tools/translations.py status   # coverage, form by form
+python3 tools/translations.py check    # keys line up with the extraction
+python3 tools/translations.py dump ID  # a form's English items
+```
 
 ## How a nurse uses it
 
@@ -317,6 +342,7 @@ lib/scoring.js                  Raw / total / % rating and the 90% pass mark
 lib/forms.js                    Loads the extracted competency forms
 
 data/competencies.json          The 46 forms, extracted from the PDFs
+data/competencies.ar.json       Arabic reading aid for the same items
 var/competency.db               SQLite records (self-hosted only, not in git)
 
 public/js/i18n.js               Arabic / English interface strings
@@ -326,6 +352,7 @@ public/admin.html               Admin: records, evaluator details, printing
 public/print.html               The printable competency forms
 
 tools/extract_competencies.py   PDF -> data/competencies.json
+tools/translations.py           Manage and check the Arabic overlay
 test/smoke.js                   End-to-end test across every deployment shape
 test/suite.js                   The checks themselves
 test/i18n.test.js               Checks both languages, and that the form's own

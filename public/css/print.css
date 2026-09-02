@@ -205,3 +205,27 @@ table { width: 100%; border-collapse: collapse; }
   /* Repeat the column headers when a form runs over a page. */
   thead { display: table-header-group; }
 }
+
+/* The competency form is the hospital's own document: it is reproduced
+   exactly as the paper form regardless of the language the site is read in,
+   so the sheet never mirrors and its text is never re-aligned. */
+.sheet {
+  direction: ltr;
+  text-align: left;
+}
+
+.toolbar .lang-toggle {
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .35);
+  color: #cfe6f0;
+  border-radius: 999px;
+  padding: 6px 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.toolbar .lang-toggle:hover { background: rgba(255, 255, 255, .22); }
+
+[dir="rtl"] .toolbar {
+  direction: rtl;
+  font-family: "Segoe UI", "Noto Naskh Arabic", Tahoma, system-ui, sans-serif;
+}

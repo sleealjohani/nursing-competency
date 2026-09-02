@@ -16,6 +16,40 @@ let nurse = null;
 
 document.getElementById('examDate').value = today();
 
+mountLanguageToggle(document.getElementById('lang-slot'));
+fillDatalists();
+checkStorageHealth('register-msg');
+
+/**
+ * Suggestions carry a translated label but the value stored on the form stays
+ * the same, so a unit reads the same on every record regardless of language.
+ */
+function fillDatalists() {
+  const groups = {
+    'job-titles': ['staffNurse', 'chargeNurse', 'headNurse', 'midwife', 'supervisor']
+      .map((k) => [t(`jobTitle.${k}`), {
+        staffNurse: 'Staff Nurse', chargeNurse: 'Charge Nurse',
+        headNurse: 'Head Nurse', midwife: 'Midwife',
+        supervisor: 'Nursing Supervisor',
+      }[k]]),
+    units: ['emergency', 'icu', 'nicu', 'medical', 'surgical', 'labour',
+      'paediatrics', 'theatre', 'outpatient'].map((k) => [t(`unit.${k}`), {
+        emergency: 'Emergency', icu: 'ICU', nicu: 'NICU',
+        medical: 'Medical Ward', surgical: 'Surgical Ward',
+        labour: 'Labour & Delivery', paediatrics: 'Paediatrics',
+        theatre: 'Operating Theatre', outpatient: 'Outpatient',
+      }[k]]),
+  };
+  for (const [id, entries] of Object.entries(groups)) {
+    const list = document.getElementById(id);
+    if (!list) continue;
+    list.innerHTML = '';
+    for (const [label, value] of entries) {
+      list.append(el('option', { value, label }));
+    }
+  }
+}
+
 // Prefill from a previous visit on this device.
 const saved = nurseSession.get();
 if (saved) {
@@ -43,7 +77,7 @@ document.getElementById('jobNumber').addEventListener('change', async (event) =>
       const input = registerForm.elements[field];
       if (input && !input.value) input.value = value || '';
     }
-    showMessage('register-msg', `Welcome back, ${found.name}.`, 'ok');
+    showMessage('register-msg', t('register.welcomeBack', { name: found.name }), 'ok');
   } catch {
     showMessage('register-msg', '');
   }
@@ -63,7 +97,7 @@ registerForm.addEventListener('submit', async (event) => {
     }, data.examDate || today());
     await showPicker();
   } catch (error) {
-    showMessage('register-msg', error.message);
+    showMessage('register-msg', errorText(error));
   }
 });
 
@@ -77,8 +111,8 @@ async function showPicker() {
   registerCard.hidden = true;
   pickerCard.hidden = false;
   document.getElementById('picker-who').textContent =
-    `${nurse.name} · Job number ${nurse.job_number}`
-    + `${nurse.unit ? ` · ${nurse.unit}` : ''}`;
+    t('picker.who', { name: nurse.name, jobNumber: nurse.job_number })
+    + (nurse.unit ? ` · ${nurse.unit}` : '');
 
   if (!forms.length) {
     forms = (await api('/api/competencies')).forms;
@@ -106,21 +140,28 @@ function renderList() {
 
   for (const form of matches) {
     const previous = doneFormIds.get(form.id);
-    const sections = form.sections.map((s) => `${s.count} ${s.name.toLowerCase()}`)
+    const sections = form.sections
+      .map((s) => `${s.count} ${gloss(`section.${s.name}`) || s.name.toLowerCase()}`)
       .join(' · ');
     listNode.append(el('button', {
       class: 'form-item', type: 'button',
       onclick: () => startExam(form),
     }, [
-      el('span', { class: 'badge badge-cat', text: form.category }),
+      categoryBadge(form.category),
       el('span', { class: 'grow' }, [
-        el('div', { class: 't', text: form.title }),
-        el('div', { class: 'm', text: `${form.total_items} items · ${sections}` }),
+        // The competency title is the hospital's own wording, never translated.
+        sourceText(el('div', { class: 't', text: form.title })),
+        el('div', {
+          class: 'm',
+          text: t('picker.itemsSummary', {
+            count: form.total_items, sections,
+          }),
+        }),
       ]),
       previous
         ? el('span', {
           class: 'done',
-          text: `${previous.result} ${percentText(previous.percent)}`,
+          text: `${t(`value.${previous.result}`)} ${percentText(previous.percent)}`,
         })
         : null,
     ]));
@@ -129,9 +170,11 @@ function renderList() {
 
 function startExam(form) {
   const previous = doneFormIds.get(form.id);
-  if (previous && !confirm(
-    `You already submitted ${form.title} on ${formatDate(previous.exam_date)}`
-    + ` (${previous.result}).\n\nTake it again? The earlier submission is kept.`)) {
+  if (previous && !confirm(t('picker.retake', {
+    title: form.title,
+    date: formatDate(previous.exam_date),
+    result: t(`value.${previous.result}`),
+  }))) {
     return;
   }
   location.href = `/exam?form=${encodeURIComponent(form.id)}`;

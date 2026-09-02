@@ -17,9 +17,15 @@ let selected = new Set();
 let editingId = null;
 let passwordFromEnv = false;
 
+mountLanguageToggle(document.getElementById('lang-slot'));
+
 start();
 
 async function start() {
+  if (!await checkStorageHealth('login-msg')) {
+    loginView.hidden = false;
+    return;
+  }
   const session = await api('/api/admin/session');
   passwordFromEnv = !!session.passwordFromEnv;
   if (session.signedIn) enterAdmin();
@@ -37,7 +43,7 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
     loginView.hidden = true;
     enterAdmin();
   } catch (error) {
-    showMessage('login-msg', error.message);
+    showMessage('login-msg', errorText(error));
   }
 });
 
@@ -49,13 +55,13 @@ document.getElementById('logout').addEventListener('click', async (event) => {
 
 document.getElementById('change-password').addEventListener('click', async (event) => {
   event.preventDefault();
-  const password = prompt('New admin password (at least 6 characters):');
+  const password = prompt(t('admin.newPasswordPrompt'));
   if (!password) return;
   try {
     await api('/api/admin/password', { method: 'POST', body: { password } });
-    showMessage('admin-msg', 'Admin password updated.', 'ok');
+    showMessage('admin-msg', t('admin.passwordUpdated'), 'ok');
   } catch (error) {
-    showMessage('admin-msg', error.message);
+    showMessage('admin-msg', errorText(error));
   }
 });
 
@@ -101,7 +107,7 @@ async function load() {
   try {
     data = await api(`/api/admin/submissions?${params}`);
   } catch (error) {
-    return showMessage('admin-msg', error.message);
+    return showMessage('admin-msg', errorText(error));
   }
   rows = data.rows;
   selected = new Set([...selected].filter((id) => rows.some((r) => r.id === id)));
@@ -110,18 +116,18 @@ async function load() {
   fillFormFilter(data.forms);
   renderRows();
   document.getElementById('page-info').textContent =
-    `Showing ${rows.length} of ${data.total} submission(s)`;
+    t('admin.showing', { shown: rows.length, total: data.total });
 }
 
 function renderStats(stats) {
   const node = document.getElementById('stats');
   node.innerHTML = '';
   const tiles = [
-    [stats.submissions, 'Submissions'],
-    [stats.nurses, 'Nurses'],
-    [stats.met, 'Met'],
-    [stats.notMet, 'Not Met'],
-    [stats.pendingReview, 'Awaiting sign-off'],
+    [stats.submissions, t('admin.stat.submissions')],
+    [stats.nurses, t('admin.stat.nurses')],
+    [stats.met, t('admin.stat.met')],
+    [stats.notMet, t('admin.stat.notMet')],
+    [stats.pendingReview, t('admin.stat.pending')],
   ];
   for (const [number, label] of tiles) {
     node.append(el('div', { class: 'stat' }, [
@@ -136,6 +142,7 @@ function fillFormFilter(forms) {
   if (formFilterReady) return;
   const select = document.getElementById('f-form');
   for (const form of forms) {
+    // Competency titles are the hospital's own wording, shown as they are.
     select.append(el('option', { value: form.id, text: form.title }));
   }
   formFilterReady = true;
@@ -157,24 +164,24 @@ function renderRows() {
     rowsNode.append(el('tr', {}, [
       el('td', {}, [checkbox]),
       el('td', {}, [el('strong', { text: row.nurse_name })]),
-      el('td', { text: row.nurse_job_number }),
+      el('td', { dir: 'ltr', text: row.nurse_job_number }),
       el('td', { text: row.nurse_unit || '—' }),
-      el('td', { text: row.form_title }),
-      el('td', {}, [el('span', { class: 'badge badge-cat', text: row.form_category })]),
-      el('td', { class: 'num', text: `${row.raw_score}/${row.total_score}` }),
-      el('td', { class: 'num', text: percentText(row.percent) }),
+      sourceText(el('td', { text: row.form_title })),
+      el('td', {}, [categoryBadge(row.form_category)]),
+      el('td', { class: 'num', dir: 'ltr', text: `${row.raw_score}/${row.total_score}` }),
+      el('td', { class: 'num', dir: 'ltr', text: percentText(row.percent) }),
       el('td', {}, [resultBadge(row.result)]),
       el('td', { text: formatDate(row.exam_date) }),
       el('td', { text: row.evaluator_name || '—' }),
-      el('td', { text: row.reviewed ? 'Yes' : 'No' }),
+      el('td', { text: row.reviewed ? t('table.yes') : t('table.no') }),
       el('td', { class: 'actions' }, [
         el('button', {
-          class: 'btn-sm', text: 'Details',
+          class: 'btn-sm', text: t('table.details'),
           onclick: () => openEditor(row),
         }),
         ' ',
         el('button', {
-          class: 'btn-sm', text: 'Print',
+          class: 'btn-sm', text: t('table.print'),
           onclick: () => openPrint([row.id]),
         }),
       ]),
@@ -185,7 +192,7 @@ function renderRows() {
 
 function updateSelectedCount() {
   document.getElementById('selected-count').textContent =
-    `${selected.size} selected`;
+    t('admin.selected', { count: selected.size });
   document.getElementById('print-selected').disabled = selected.size === 0;
   const all = document.getElementById('select-all');
   all.checked = rows.length > 0 && rows.every((row) => selected.has(row.id));
@@ -212,10 +219,12 @@ document.getElementById('print-selected').addEventListener('click',
 document.getElementById('print-all').addEventListener('click', async () => {
   try {
     const { ids } = await api(`/api/admin/submission-ids?${filterQuery()}`);
-    if (!ids.length) return showMessage('admin-msg', 'Nothing to print.', 'info');
+    if (!ids.length) {
+      return showMessage('admin-msg', t('admin.nothingToPrint'), 'info');
+    }
     openPrint(ids);
   } catch (error) {
-    showMessage('admin-msg', error.message);
+    showMessage('admin-msg', errorText(error));
   }
 });
 
@@ -227,10 +236,14 @@ document.getElementById('export-csv').addEventListener('click', () => {
 
 function openEditor(row) {
   editingId = row.id;
-  document.getElementById('edit-title').textContent = row.form_title;
-  document.getElementById('edit-sub').textContent =
-    `${row.nurse_name} · Job number ${row.nurse_job_number} · `
-    + `${formatDate(row.exam_date)} · ${percentText(row.percent)} ${row.result}`;
+  const title = document.getElementById('edit-title');
+  title.textContent = row.form_title;
+  sourceText(title);
+  document.getElementById('edit-sub').textContent = t('editor.subtitle', {
+    name: row.nurse_name, jobNumber: row.nurse_job_number,
+    date: formatDate(row.exam_date), percent: percentText(row.percent),
+    result: t(`value.${row.result}`),
+  });
   document.getElementById('e-evaluator').value = row.evaluator_name || '';
   document.getElementById('e-evaluator-job').value = row.evaluator_job_number || '';
   document.getElementById('e-evaluated-date').value = row.evaluated_date || '';
@@ -247,16 +260,17 @@ document.getElementById('edit-cancel').addEventListener('click', () => dialog.cl
 
 document.getElementById('edit-delete').addEventListener('click', async () => {
   const row = rows.find((r) => r.id === editingId);
-  if (!confirm(`Permanently delete ${row.form_title} for ${row.nurse_name}?`
-    + '\n\nThis cannot be undone.')) return;
+  if (!confirm(t('editor.confirmDelete', {
+    title: row.form_title, name: row.nurse_name,
+  }))) return;
   try {
     await api(`/api/admin/submissions/${editingId}`, { method: 'DELETE' });
     selected.delete(editingId);
     dialog.close();
-    showMessage('admin-msg', 'Submission deleted.', 'ok');
+    showMessage('admin-msg', t('editor.deleted'), 'ok');
     load();
   } catch (error) {
-    alert(error.message);
+    alert(errorText(error));
   }
 });
 
@@ -277,9 +291,9 @@ document.getElementById('edit-save').addEventListener('click', async () => {
       },
     });
     dialog.close();
-    showMessage('admin-msg', 'Evaluator details saved.', 'ok');
+    showMessage('admin-msg', t('editor.saved'), 'ok');
     load();
   } catch (error) {
-    alert(error.message);
+    alert(errorText(error));
   }
 });

@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node server.js",
-    "test": "node test/smoke.js",
+    "test": "node test/i18n.test.js && node test/smoke.js",
     "extract": "python3 tools/extract_competencies.py",
     "set-password": "node server.js --set-password",
     "test:pg": "TEST_DATABASE_URL=$TEST_DATABASE_URL node test/smoke.js",

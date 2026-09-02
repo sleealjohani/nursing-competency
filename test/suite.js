@@ -55,6 +55,16 @@ function buildChecks(base, password, { suffix = '' } = {}) {
   const state = {};
 
   return [
+    ['health reports working storage', async () => {
+      const { status, body } = await call('/api/health');
+      assert.strictEqual(status, 200);
+      assert.strictEqual(body.ok, true);
+      assert.strictEqual(body.connected, true);
+      assert.ok(['sqlite', 'postgres'].includes(body.storage), body.storage);
+      assert.ok(body.forms >= 40);
+      assert.ok(body.items > 700);
+    }],
+
     ['all competency forms load', async () => {
       const { status, body } = await call('/api/competencies');
       assert.strictEqual(status, 200);

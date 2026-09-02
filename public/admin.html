@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,27 +10,28 @@
 <body>
 <header class="topbar">
   <div>
-    <h1>Competency Records — Admin</h1>
-    <div class="sub">Alhadithah General Hospital &middot; Nursing Service Department</div>
+    <h1 data-i18n="adminTitle">Competency Records — Admin</h1>
+    <div class="sub" data-i18n="department">Nursing Service Department</div>
   </div>
   <div class="spacer"></div>
-  <a href="/">Nurse site</a>
-  <a href="#" id="change-password" hidden>Change password</a>
-  <a href="#" id="logout" hidden>Sign out</a>
+  <span id="lang-slot"></span>
+  <a href="/" data-i18n="nav.nurseSite">Nurse site</a>
+  <a href="#" id="change-password" hidden data-i18n="nav.changePassword">Change password</a>
+  <a href="#" id="logout" hidden data-i18n="nav.signOut">Sign out</a>
 </header>
 
 <!-- Sign in -->
 <main class="wrap narrow" id="login-view" hidden>
   <section class="card">
-    <h2>Admin sign in</h2>
-    <p class="hint">Enter the administrator password to view submitted competencies.</p>
+    <h2 data-i18n="admin.signIn">Admin sign in</h2>
+    <p class="hint" data-i18n="admin.signInHint">Enter the administrator password.</p>
     <div id="login-msg"></div>
     <form id="login-form">
       <div class="field">
-        <label for="password">Password</label>
+        <label for="password" data-i18n="admin.password">Password</label>
         <input id="password" type="password" autocomplete="current-password" required>
       </div>
-      <button class="btn-primary" type="submit">Sign in</button>
+      <button class="btn-primary" type="submit" data-i18n="admin.signInButton">Sign in</button>
     </form>
   </section>
 </main>
@@ -41,49 +42,53 @@
   <div class="stats" id="stats"></div>
 
   <section class="card">
-    <h2>Submitted competencies</h2>
-    <p class="hint">Filter the list, fill in the evaluator name and dates, then
-      print the selected records as the hospital's competency forms.</p>
+    <h2 data-i18n="admin.heading">Submitted competencies</h2>
+    <p class="hint" data-i18n="admin.hint">Filter the list, fill in the evaluator
+      name and dates, then print the selected records.</p>
     <div class="filters">
       <div>
-        <label for="f-search">Search</label>
-        <input id="f-search" placeholder="Name, job number, unit, competency">
+        <label for="f-search" data-i18n="filter.search">Search</label>
+        <input id="f-search" data-i18n-placeholder="filter.searchPlaceholder">
       </div>
       <div>
-        <label for="f-form">Competency</label>
-        <select id="f-form"><option value="">All competencies</option></select>
+        <label for="f-form" data-i18n="filter.competency">Competency</label>
+        <select id="f-form"><option value="" data-i18n="filter.allCompetencies">All competencies</option></select>
       </div>
       <div>
-        <label for="f-category">Category</label>
+        <label for="f-category" data-i18n="filter.category">Category</label>
         <select id="f-category">
-          <option value="">All</option><option>Mandatory</option>
-          <option>Specific</option><option>General</option>
+          <option value="" data-i18n="filter.all">All</option>
+          <option value="Mandatory" data-i18n="category.Mandatory">Mandatory</option>
+          <option value="Specific" data-i18n="category.Specific">Specific</option>
+          <option value="General" data-i18n="category.General">General</option>
         </select>
       </div>
       <div>
-        <label for="f-result">Result</label>
+        <label for="f-result" data-i18n="filter.result">Result</label>
         <select id="f-result">
-          <option value="">All</option><option>Met</option><option>Not Met</option>
+          <option value="" data-i18n="filter.all">All</option>
+          <option value="Met" data-i18n="value.Met">Met</option>
+          <option value="Not Met" data-i18n="value.Not Met">Not Met</option>
         </select>
       </div>
       <div>
-        <label for="f-reviewed">Review state</label>
+        <label for="f-reviewed" data-i18n="filter.reviewState">Review state</label>
         <select id="f-reviewed">
-          <option value="">All</option>
-          <option value="no">Not signed off</option>
-          <option value="yes">Signed off</option>
+          <option value="" data-i18n="filter.all">All</option>
+          <option value="no" data-i18n="filter.notSignedOff">Not signed off</option>
+          <option value="yes" data-i18n="filter.signedOff">Signed off</option>
         </select>
       </div>
       <div>
-        <label for="f-from">Exam date from</label>
+        <label for="f-from" data-i18n="filter.from">Exam date from</label>
         <input id="f-from" type="date">
       </div>
       <div>
-        <label for="f-to">Exam date to</label>
+        <label for="f-to" data-i18n="filter.to">Exam date to</label>
         <input id="f-to" type="date">
       </div>
       <div style="display:flex;align-items:flex-end;gap:8px">
-        <button type="button" id="f-clear">Clear</button>
+        <button type="button" id="f-clear" data-i18n="filter.clear">Clear</button>
       </div>
     </div>
   </section>
@@ -92,21 +97,30 @@
     <div class="table-scroll">
       <table class="data">
         <thead><tr>
-          <th style="width:34px"><input type="checkbox" id="select-all" title="Select all shown"></th>
-          <th>Nurse</th><th>Job No.</th><th>Unit</th><th>Competency</th>
-          <th>Category</th><th class="num">Score</th><th class="num">%</th>
-          <th>Result</th><th>Exam Date</th><th>Evaluator</th><th>Signed off</th>
+          <th style="width:34px"><input type="checkbox" id="select-all"
+            data-i18n-title="table.selectAll"></th>
+          <th data-i18n="table.nurse">Nurse</th>
+          <th data-i18n="table.jobNo">Job No.</th>
+          <th data-i18n="table.unit">Unit</th>
+          <th data-i18n="table.competency">Competency</th>
+          <th data-i18n="table.category">Category</th>
+          <th class="num" data-i18n="table.score">Score</th>
+          <th class="num" data-i18n="table.percent">%</th>
+          <th data-i18n="table.result">Result</th>
+          <th data-i18n="table.examDate">Exam Date</th>
+          <th data-i18n="table.evaluator">Evaluator</th>
+          <th data-i18n="table.signedOff">Signed off</th>
           <th style="width:150px"></th>
         </tr></thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
-    <p class="empty" id="no-rows" hidden>No submissions match these filters.</p>
+    <p class="empty" id="no-rows" hidden data-i18n="table.empty">No submissions match these filters.</p>
     <div class="sticky-actions">
       <strong id="selected-count">0 selected</strong>
-      <button type="button" class="btn-primary" id="print-selected">Print selected forms</button>
-      <button type="button" id="print-all">Print all shown</button>
-      <button type="button" id="export-csv">Export CSV</button>
+      <button type="button" class="btn-primary" id="print-selected" data-i18n="admin.printSelected">Print selected forms</button>
+      <button type="button" id="print-all" data-i18n="admin.printAll">Print all shown</button>
+      <button type="button" id="export-csv" data-i18n="admin.exportCsv">Export CSV</button>
       <span class="spacer"></span>
       <span class="hint" style="margin:0" id="page-info"></span>
     </div>
@@ -121,52 +135,53 @@
       <p class="hint" id="edit-sub"></p>
       <div class="grid2">
         <div class="field">
-          <label for="e-evaluator">Evaluator's Name</label>
+          <label for="e-evaluator" data-i18n="editor.evaluatorName">Evaluator's Name</label>
           <input id="e-evaluator">
         </div>
         <div class="field">
-          <label for="e-evaluator-job">Evaluator's Job Number</label>
+          <label for="e-evaluator-job" data-i18n="editor.evaluatorJob">Evaluator's Job Number</label>
           <input id="e-evaluator-job">
         </div>
         <div class="field">
-          <label for="e-evaluated-date">Evaluated Date</label>
+          <label for="e-evaluated-date" data-i18n="editor.evaluatedDate">Evaluated Date</label>
           <input id="e-evaluated-date" type="date">
         </div>
         <div class="field">
-          <label for="e-conformed-date">Conformed Date (staff)</label>
+          <label for="e-conformed-date" data-i18n="editor.conformedDate">Conformed Date</label>
           <input id="e-conformed-date" type="date">
         </div>
         <div class="field">
-          <label for="e-remedial">Needs Remedial</label>
-          <select id="e-remedial"><option value="0">NO</option><option value="1">YES</option></select>
+          <label for="e-remedial" data-i18n="editor.needsRemedial">Needs Remedial</label>
+          <select id="e-remedial"><option value="0" data-i18n="editor.no">NO</option><option value="1" data-i18n="editor.yes">YES</option></select>
         </div>
         <div class="field">
-          <label for="e-remedial-date">Remedial Date</label>
+          <label for="e-remedial-date" data-i18n="editor.remedialDate">Remedial Date</label>
           <input id="e-remedial-date" type="date">
         </div>
       </div>
       <div class="field">
-        <label for="e-comments">Evaluator's Comments / Recommendations</label>
+        <label for="e-comments" data-i18n="editor.comments">Evaluator's Comments</label>
         <textarea id="e-comments"></textarea>
       </div>
       <div class="field">
-        <label for="e-staff-comments">Staff Nurse Comments</label>
+        <label for="e-staff-comments" data-i18n="editor.staffComments">Staff Nurse Comments</label>
         <textarea id="e-staff-comments"></textarea>
       </div>
       <div class="field">
-        <label><input type="checkbox" id="e-reviewed" style="margin-right:7px">
-          Mark as signed off</label>
+        <label><input type="checkbox" id="e-reviewed">
+          <span data-i18n="editor.markSignedOff">Mark as signed off</span></label>
       </div>
     </div>
     <div class="dlg-foot">
-      <button type="button" class="btn-danger" id="edit-delete">Delete record</button>
+      <button type="button" class="btn-danger" id="edit-delete" data-i18n="editor.delete">Delete record</button>
       <span style="flex:1"></span>
-      <button type="button" id="edit-cancel">Cancel</button>
-      <button type="button" class="btn-primary" id="edit-save">Save</button>
+      <button type="button" id="edit-cancel" data-i18n="editor.cancel">Cancel</button>
+      <button type="button" class="btn-primary" id="edit-save" data-i18n="editor.save">Save</button>
     </div>
   </form>
 </dialog>
 
+<script src="/js/i18n.js"></script>
 <script src="/js/common.js"></script>
 <script src="/js/admin.js"></script>
 </body>

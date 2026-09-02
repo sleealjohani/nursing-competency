@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,83 +10,76 @@
 <body>
 <header class="topbar">
   <div>
-    <h1>Alhadithah General Hospital</h1>
-    <div class="sub">Nursing Service Department &middot; Competency Assessment</div>
+    <h1 data-i18n="hospital">Alhadithah General Hospital</h1>
+    <div class="sub" data-i18n="departmentAssessment">Nursing Service Department</div>
   </div>
   <div class="spacer"></div>
-  <a href="/admin">Admin</a>
+  <span id="lang-slot"></span>
+  <a href="/admin" data-i18n="nav.admin">Admin</a>
 </header>
 
 <main class="wrap narrow" id="main">
   <!-- Step 1: register -->
   <section class="card" id="register-card">
-    <h2>Your details</h2>
-    <p class="hint">These appear at the top of every competency form you submit.
-      Enter your job number first — if you have registered before, the rest fills in.</p>
+    <h2 data-i18n="register.heading">Your details</h2>
+    <p class="hint" data-i18n="register.hint">These appear at the top of every
+      competency form you submit.</p>
     <div id="register-msg"></div>
     <form id="register-form">
       <div class="grid2">
         <div class="field">
-          <label for="jobNumber">Job Number <span class="req">*</span></label>
+          <label for="jobNumber"><span data-i18n="field.jobNumber">Job Number</span> <span class="req">*</span></label>
           <input id="jobNumber" name="jobNumber" required autocomplete="off">
         </div>
         <div class="field">
-          <label for="name">Name <span class="req">*</span></label>
+          <label for="name"><span data-i18n="field.name">Name</span> <span class="req">*</span></label>
           <input id="name" name="name" required autocomplete="name">
         </div>
         <div class="field">
-          <label for="jobTitle">Job Title</label>
+          <label for="jobTitle" data-i18n="field.jobTitle">Job Title</label>
           <input id="jobTitle" name="jobTitle" list="job-titles" autocomplete="off">
-          <datalist id="job-titles">
-            <option>Staff Nurse</option><option>Charge Nurse</option>
-            <option>Head Nurse</option><option>Midwife</option>
-            <option>Nursing Supervisor</option>
-          </datalist>
+          <datalist id="job-titles"></datalist>
         </div>
         <div class="field">
-          <label for="unit">Unit</label>
+          <label for="unit" data-i18n="field.unit">Unit</label>
           <input id="unit" name="unit" list="units" autocomplete="off">
-          <datalist id="units">
-            <option>Emergency</option><option>ICU</option><option>NICU</option>
-            <option>Medical Ward</option><option>Surgical Ward</option>
-            <option>Labour &amp; Delivery</option><option>Paediatrics</option>
-            <option>Operating Theatre</option><option>Outpatient</option>
-          </datalist>
+          <datalist id="units"></datalist>
         </div>
         <div class="field">
-          <label for="contractDate">Contract Date</label>
+          <label for="contractDate" data-i18n="field.contractDate">Contract Date</label>
           <input id="contractDate" name="contractDate" type="date">
         </div>
         <div class="field">
-          <label for="examDate">Date of Exam</label>
+          <label for="examDate" data-i18n="field.examDate">Date of Exam</label>
           <input id="examDate" name="examDate" type="date">
         </div>
       </div>
-      <button class="btn-primary" type="submit">Save and choose a competency</button>
+      <button class="btn-primary" type="submit" data-i18n="register.submit">Save and choose a competency</button>
     </form>
   </section>
 
   <!-- Step 2: pick a competency -->
   <section class="card" id="picker-card" hidden>
-    <h2>Choose a competency</h2>
+    <h2 data-i18n="picker.heading">Choose a competency</h2>
     <p class="hint" id="picker-who"></p>
     <div class="picker-tools">
-      <input id="search" placeholder="Search competencies…" autocomplete="off">
+      <input id="search" data-i18n-placeholder="picker.search" autocomplete="off">
       <select id="category">
-        <option value="">All categories</option>
-        <option>Mandatory</option>
-        <option>Specific</option>
-        <option>General</option>
+        <option value="" data-i18n="picker.allCategories">All categories</option>
+        <option value="Mandatory" data-i18n="category.Mandatory">Mandatory</option>
+        <option value="Specific" data-i18n="category.Specific">Specific</option>
+        <option value="General" data-i18n="category.General">General</option>
       </select>
     </div>
     <div class="form-list" id="form-list"></div>
-    <p class="empty" id="picker-empty" hidden>No competency matches that search.</p>
+    <p class="empty" id="picker-empty" hidden data-i18n="picker.empty">No competency matches that search.</p>
     <p style="margin-top:18px">
-      <button type="button" id="edit-details" class="btn-sm">Edit my details</button>
+      <button type="button" id="edit-details" class="btn-sm" data-i18n="picker.editDetails">Edit my details</button>
     </p>
   </section>
 </main>
 
+<script src="/js/i18n.js"></script>
 <script src="/js/common.js"></script>
 <script src="/js/register.js"></script>
 </body>

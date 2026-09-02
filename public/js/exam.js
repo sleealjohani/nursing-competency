@@ -7,12 +7,6 @@
  * Answers are kept in localStorage so a closed tab does not lose the sitting.
  */
 
-const RATING_LABELS = {
-  M: 'Met', NM: 'Not Met', NA: 'Not Applicable',
-  VT: 'Vendor Training', RD: 'Repeat Demonstration',
-  UEC: 'Uses Equipment Competently',
-};
-
 const params = new URLSearchParams(location.search);
 const formId = params.get('form');
 
@@ -35,19 +29,21 @@ const nodes = {
   progress: document.getElementById('progress'),
 };
 
+mountLanguageToggle(document.getElementById('lang-slot'));
+
 init();
 
 async function init() {
-  if (!formId) return fail('No competency selected.');
+  if (!formId) return fail(t('exam.noneSelected'));
   if (!nurse?.jobNumber) {
-    return fail('Please register your details first.', true);
+    return fail(t('exam.registerFirst'), true);
   }
   try {
     const data = await api(`/api/competencies/${encodeURIComponent(formId)}`);
     form = data.form;
     ratings = data.ratings;
   } catch (error) {
-    return fail(error.message);
+    return fail(errorText(error));
   }
 
   items = [];
@@ -70,14 +66,19 @@ async function init() {
 
   nodes.loading.hidden = true;
   nodes.head.hidden = false;
-  document.getElementById('exam-title').textContent = form.title;
-  document.getElementById('exam-meta').textContent =
-    `${form.category} competency · ${nurse.name} · Job number ${nurse.jobNumber}`;
-  document.getElementById('keyhint').textContent =
-    `Keys: ${ratings.map((r, i) => `${i + 1}=${r}`).join('  ')}  ·  ←/→ to move`;
+  // The competency title is the hospital's wording; it stays as the PDF has it.
+  const titleNode = document.getElementById('exam-title');
+  titleNode.textContent = form.title;
+  sourceText(titleNode);
+  document.getElementById('keyhint').textContent = t('exam.keyHint', {
+    keys: ratings.map((r, i) => `${i + 1}=${r}`).join('  '),
+  });
 
   if (form.notes?.length) {
+    // A transcription note from the source scan — shown as written.
     showMessage('msg', form.notes.join(' '), 'info');
+    const note = document.querySelector('#msg .msg');
+    if (note) sourceText(note);
   }
 
   renderQuestion();
@@ -118,12 +119,17 @@ function renderQuestion() {
   nodes.result.hidden = true;
 
   const item = items[position];
-  document.getElementById('q-section').textContent =
-    `${item.sectionRoman}. ${item.sectionName}`;
-  document.getElementById('q-number').textContent =
-    `Item ${item.no} of ${item.sectionCount} in this section`
-    + `  ·  question ${position + 1} of ${items.length}`;
-  document.getElementById('q-text').textContent = item.text;
+  const sectionNode = document.getElementById('q-section');
+  sectionNode.innerHTML = '';
+  sectionNode.append(sectionHeading(item.sectionRoman, item.sectionName));
+  document.getElementById('q-number').textContent = t('exam.itemPosition', {
+    no: item.no, count: item.sectionCount,
+    index: position + 1, total: items.length,
+  });
+  // The competency item itself is quoted from the PDF, never translated.
+  const textNode = document.getElementById('q-text');
+  textNode.textContent = item.text;
+  sourceText(textNode);
 
   nodes.rateRow.innerHTML = '';
   ratings.forEach((rating, index) => {
@@ -133,15 +139,22 @@ function renderQuestion() {
       class: `rate${selected ? ` sel-${rating}` : ''}`,
       onclick: () => choose(rating),
     }, [
-      el('span', { class: 'code', text: rating }),
-      el('span', { class: 'lbl', text: RATING_LABELS[rating] || rating }),
-      el('span', { class: 'key', text: `press ${index + 1}` }),
+      // The rating code is the form's own; the label beside it is a reading aid.
+      el('span', { class: 'code', dir: 'ltr', text: rating }),
+      el('span', { class: 'lbl', text: t(`rating.${rating}`) }),
+      el('span', { class: 'key', text: t('exam.pressKey', { key: index + 1 }) }),
     ]));
   });
 
+  const arrowBack = isRtl() ? '→' : '←';
+  const arrowNext = isRtl() ? '←' : '→';
   document.getElementById('prev').disabled = position === 0;
-  document.getElementById('next').textContent =
-    position === items.length - 1 ? 'Review answers →' : 'Skip →';
+  document.getElementById('prev').textContent = `${arrowBack} ${t('exam.previous')}`;
+  document.getElementById('next').textContent = position === items.length - 1
+    ? `${t('exam.toReview')} ${arrowNext}`
+    : `${t('exam.skip')} ${arrowNext}`;
+  document.getElementById('back-to-questions').textContent =
+    `${arrowBack} ${t('exam.backToQuestions')}`;
 
   updateProgress();
 }
@@ -149,9 +162,10 @@ function renderQuestion() {
 function updateProgress() {
   const answered = items.filter((item) => answers[item.key]).length;
   nodes.progress.style.width = `${(answered / items.length) * 100}%`;
-  document.getElementById('exam-meta').textContent =
-    `${form.category} competency · ${nurse.name} · `
-    + `${answered} of ${items.length} answered`;
+  document.getElementById('exam-meta').textContent = t('exam.progress', {
+    category: t(`category.${form.category}`), name: nurse.name,
+    answered, total: items.length,
+  });
 }
 
 function choose(rating) {
@@ -178,7 +192,10 @@ document.getElementById('next').addEventListener('click', () => {
 
 document.getElementById('toggle-view').addEventListener('click', () => {
   if (nodes.review.hidden) showReview();
-  else renderQuestion();
+  else {
+    document.getElementById('toggle-view').textContent = t('exam.reviewAll');
+    renderQuestion();
+  }
 });
 
 document.getElementById('back-to-questions').addEventListener('click', () => {
@@ -213,12 +230,12 @@ document.addEventListener('keydown', (event) => {
 function showReview() {
   nodes.question.hidden = true;
   nodes.review.hidden = false;
-  document.getElementById('toggle-view').textContent = 'Back to questions';
+  document.getElementById('toggle-view').textContent = t('exam.backToQuestions');
 
   const missing = items.filter((item) => !answers[item.key]);
   document.getElementById('review-hint').textContent = missing.length
-    ? `${missing.length} item(s) are still unanswered — click one to go to it.`
-    : 'All items answered. Check them over, then submit.';
+    ? t('exam.reviewMissing', { count: missing.length })
+    : t('exam.reviewAllDone');
 
   const list = document.getElementById('review-list');
   list.innerHTML = '';
@@ -227,11 +244,8 @@ function showReview() {
   items.forEach((item, index) => {
     if (item.sectionName !== lastSection) {
       lastSection = item.sectionName;
-      list.append(el('div', {
-        class: 'q-section',
-        style: 'margin-top:16px',
-        text: `${item.sectionRoman}. ${item.sectionName}`,
-      }));
+      list.append(el('div', { class: 'q-section', style: 'margin-top:16px' },
+        [sectionHeading(item.sectionRoman, item.sectionName)]));
     }
     const rating = answers[item.key];
     list.append(el('div', {
@@ -239,18 +253,19 @@ function showReview() {
       style: 'cursor:pointer',
       onclick: () => { position = index; renderQuestion(); },
     }, [
-      el('span', { class: 'n', text: `${item.no}.` }),
-      el('span', {
+      el('span', { class: 'n', dir: 'ltr', text: `${item.no}.` }),
+      sourceText(el('span', {
         class: 'grow',
         text: item.text.length > 190 ? `${item.text.slice(0, 190)}…` : item.text,
-      }),
-      el('span', { class: `r r-${rating || 'none'}`, text: rating || '—' }),
+      })),
+      el('span', { class: `r r-${rating || 'none'}`, dir: 'ltr',
+        text: rating || '—' }),
     ]));
   });
 
   document.getElementById('submit').disabled = missing.length > 0;
   document.getElementById('submit').textContent = missing.length
-    ? `${missing.length} item(s) left` : 'Submit competency';
+    ? t('exam.itemsLeft', { count: missing.length }) : t('exam.submit');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -259,7 +274,7 @@ function showReview() {
 document.getElementById('submit').addEventListener('click', async () => {
   const button = document.getElementById('submit');
   button.disabled = true;
-  button.textContent = 'Submitting…';
+  button.textContent = t('exam.submitting');
   showMessage('msg', '');
   try {
     const { submission, score } = await api('/api/submissions', {
@@ -275,9 +290,9 @@ document.getElementById('submit').addEventListener('click', async () => {
     localStorage.removeItem(draftKey);
     showResult(submission, score);
   } catch (error) {
-    showMessage('msg', error.message);
+    showMessage('msg', errorText(error));
     button.disabled = false;
-    button.textContent = 'Submit competency';
+    button.textContent = t('exam.submit');
   }
 });
 
@@ -286,28 +301,28 @@ function showResult(submission, score) {
   nodes.question.hidden = true;
   nodes.review.hidden = true;
   nodes.result.hidden = false;
-  document.getElementById('result-title').textContent = 'Submitted';
+  document.getElementById('result-title').textContent = t('result.heading');
 
   const body = document.getElementById('result-body');
   body.innerHTML = '';
   body.append(
     el('p', { class: 'hint' }, [
-      `${submission.form_title} — submitted for ${submission.nurse_name} `
-      + `on ${formatDate(submission.exam_date)}.`,
+      t('result.line', {
+        title: submission.form_title,
+        name: submission.nurse_name,
+        date: formatDate(submission.exam_date),
+      }),
     ]),
     el('div', { class: 'stats' }, [
-      stat(percentText(score.percent), '% Rating'),
-      stat(String(score.rawScore), 'Raw Score'),
-      stat(String(score.totalScore), 'Total Score'),
-      stat(String(score.naCount), 'Not Applicable'),
+      stat(percentText(score.percent), t('result.percent')),
+      stat(String(score.rawScore), t('result.raw')),
+      stat(String(score.totalScore), t('result.total')),
+      stat(String(score.naCount), t('result.na')),
     ]),
     el('p', {}, [resultBadge(score.result)]),
     el('div', {
       class: `msg ${score.result === 'Met' ? 'msg-ok' : 'msg-info'}`,
-      text: score.result === 'Met'
-        ? 'Result: Met (90% – 100%). Your evaluator will review and sign the form.'
-        : 'Result: Not Met (89% and below). Remedial is required once; your'
-          + ' evaluator will set the remedial date.',
+      text: score.result === 'Met' ? t('result.met') : t('result.notMet'),
     }),
   );
   window.scrollTo({ top: 0 });

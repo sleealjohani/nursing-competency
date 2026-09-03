@@ -192,8 +192,16 @@ check('the English extraction is never overwritten by the aid', () => {
 
 check('the printed form carries no Arabic rendering', () => {
   const js = fs.readFileSync(path.join(PUBLIC, 'js/print.js'), 'utf8');
-  assert.ok(!/translation|arabic|aid/i.test(js),
+  // Whole words only: an English word that merely contains one of these is
+  // not a use of the reading aid.
+  assert.ok(!/\b(translation|arabic|showAid|renderAid)\b/i.test(js),
     'print.js must render the source wording only');
+  assert.ok(!/competencies\.ar/i.test(js),
+    'print.js must not read the Arabic overlay');
+  // The letterhead is the hospital's own mark; Arabic there is part of the
+  // logo image, not translated text.
+  assert.ok(!/[\u0600-\u06FF]/.test(js),
+    'print.js must contain no Arabic text');
 });
 
 check('a submission stores the English wording only', () => {

@@ -220,11 +220,17 @@ date.
   evaluator's name and job number, evaluated date, comments, staff nurse
   comments, needs-remedial and remedial date, conformed date — and marks
   it signed off.
-- **Print selected forms** (or **Print all shown**) opens the chosen
-  records as the hospital's competency form, one per sheet, with the
-  nurse's answers ticked in the M / NM / NA columns and the scores and
-  dates filled in. Print the page, or save it as PDF, and the papers are
-  ready for signature.
+- **Print selected forms** (or **Print all shown**) reproduces the chosen
+  records as the hospital's own competency form — the same letterhead and
+  logos, field grid, bordered assessment table and pair of signature boxes
+  as the source PDF — with the nurse's answers ticked into the
+  M / NM / NA boxes and the scores and dates filled in. Print the page, or
+  save it as PDF, and the papers are ready for signature.
+
+  Pages are filled by measurement rather than left to the browser, so a
+  long form breaks where the paper does: the letterhead and column headers
+  repeat on every sheet and the signature boxes sit at the end. The two
+  logos in `public/img/` were taken from the source PDFs themselves.
 - **Export CSV** gives the same list as a spreadsheet.
 
 ## How a competency is scored

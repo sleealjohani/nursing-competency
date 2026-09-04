@@ -187,6 +187,26 @@ python3 tools/translations.py check    # keys line up with the extraction
 python3 tools/translations.py dump ID  # a form's English items
 ```
 
+## The training video
+
+`tools/record-walkthrough.js` records a walkthrough for nurses by driving the
+real site on a phone-sized screen: registration, choosing a competency,
+answering with one tap per item, reviewing and submitting. Arabic captions
+are drawn over the page and a ripple marks every tap. Nothing is mocked up.
+
+```bash
+node server.js &                      # port 3111, empty database
+npm i --no-save playwright-core
+node tools/record-walkthrough.js      # -> video/walkthrough.webm
+ffmpeg -i video/walkthrough.webm -c:v libx264 -pix_fmt yuv420p \
+       -preset slow -crf 23 -movflags +faststart video/nurse-guide-ar.mp4
+```
+
+Re-run it whenever the pages change, so the video never teaches a screen
+that no longer exists. Record against a local instance, never production —
+it registers a nurse and submits a competency, which would otherwise land in
+the real records.
+
 ## How a nurse uses it
 
 1. Opens the site and enters their **job number, name, job title, unit and

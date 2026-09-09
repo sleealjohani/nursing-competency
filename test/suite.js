@@ -332,6 +332,76 @@ function buildChecks(base, password, { suffix = '' } = {}) {
       assert.ok(body.includes('Dr. Evaluator'));
     }],
 
+    ['evaluator details are written onto many records at once', async () => {
+      const { body: list } = await call('/api/admin/submissions');
+      const ids = list.rows.map((row) => row.id);
+      const { status, body } = await call('/api/admin/submissions', {
+        method: 'PATCH',
+        body: {
+          ids,
+          fields: {
+            evaluator_name: 'Dr. Bulk', evaluator_job_number: 'DOC-2',
+            evaluated_date: '2026-02-01', reviewed: true,
+          },
+        },
+      });
+      assert.strictEqual(status, 200);
+      assert.strictEqual(body.updated, ids.length);
+      const after = await call('/api/admin/submissions');
+      assert.ok(after.body.rows.every((row) => row.evaluator_name === 'Dr. Bulk'),
+        'every record should carry the evaluator');
+      assert.ok(after.body.rows.every((row) => row.reviewed === true));
+      assert.strictEqual(after.body.stats.pendingReview, 0);
+    }],
+
+    ['a bulk write leaves fields it was not given alone', async () => {
+      const { body: before } = await call('/api/admin/submissions');
+      const ids = before.rows.map((row) => row.id);
+      await call('/api/admin/submissions', {
+        method: 'PATCH',
+        body: { ids, fields: { evaluator_comments: 'Reviewed in bulk.' } },
+      });
+      const { body: after } = await call('/api/admin/submissions');
+      // The evaluator set by the previous check must still be there.
+      assert.ok(after.rows.every((row) => row.evaluator_name === 'Dr. Bulk'),
+        'an unrelated field was cleared');
+    }],
+
+    ['a bulk write with no records is refused', async () => {
+      const { status } = await call('/api/admin/submissions', {
+        method: 'PATCH', body: { ids: [], fields: { evaluator_name: 'X' } },
+      });
+      assert.strictEqual(status, 400);
+    }],
+
+    ['the export groups every submission under its nurse', async () => {
+      const { status, body } = await call('/api/admin/export-groups');
+      assert.strictEqual(status, 200);
+      assert.strictEqual(body.groups.length, 1, 'one nurse in this suite');
+      const group = body.groups[0];
+      assert.strictEqual(group.name, 'Test Nurse');
+      assert.strictEqual(group.jobNumber, JOB);
+      assert.strictEqual(group.submissions.length, 4);
+      // Oldest first, so the file reads as a history.
+      const dates = group.submissions.map((s) => s.exam_date);
+      assert.deepStrictEqual(dates, [...dates].sort());
+      for (const submission of group.submissions) {
+        const form = body.forms[submission.form_id];
+        assert.ok(form, `no form text for ${submission.form_id}`);
+        assert.strictEqual(Object.keys(submission.answers).length,
+          form.total_items);
+      }
+    }],
+
+    ['an absent ids parameter is not read as a selection', async () => {
+      // Number('') is 0, so a missing parameter once looked like id 0.
+      assert.strictEqual((await call('/api/admin/export-groups?ids=')).status, 200);
+      assert.strictEqual((await call('/api/admin/print?ids=')).status, 400);
+      assert.strictEqual((await call('/api/admin/print?ids=0')).status, 400);
+      const { body } = await call('/api/admin/export-groups?ids=,,');
+      assert.strictEqual(body.groups.length, 1, 'should fall back to the filters');
+    }],
+
     ['admin deletes a submission', async () => {
       const { status } = await call(`/api/admin/submissions/${state.allMetId}`, {
         method: 'DELETE',

@@ -240,6 +240,85 @@ document.getElementById('export-csv').addEventListener('click', () => {
   location.href = `/api/admin/export.csv?${filterQuery()}`;
 });
 
+// --- one PDF per employee, zipped ------------------------------------------
+
+document.getElementById('export-zip').addEventListener('click', () => {
+  // Selected records if any are ticked, otherwise everything the filters show.
+  const params = selected.size
+    ? new URLSearchParams({ ids: [...selected].join(',') })
+    : filterQuery();
+  window.open(`/export?${params}`, '_blank');
+});
+
+// --- evaluator details, filled on many records at once ----------------------
+
+const bulkDialog = document.getElementById('bulk-dialog');
+
+document.getElementById('fill-evaluator').addEventListener('click', () => {
+  const scope = document.getElementById('b-scope');
+  scope.value = selected.size ? 'selected' : 'shown';
+  scope.options[0].disabled = selected.size === 0;
+  showMessage('bulk-msg', '');
+  updateBulkCount();
+  bulkDialog.showModal();
+});
+
+document.getElementById('b-scope').addEventListener('change', updateBulkCount);
+
+function updateBulkCount() {
+  const scope = document.getElementById('b-scope').value;
+  const count = scope === 'selected' ? selected.size : rows.length;
+  document.getElementById('bulk-sub').textContent =
+    t('bulk.count', { count });
+}
+
+document.getElementById('bulk-cancel').addEventListener('click',
+  () => bulkDialog.close());
+
+document.getElementById('bulk-save').addEventListener('click', async () => {
+  const scope = document.getElementById('b-scope').value;
+  let ids = scope === 'selected' ? [...selected] : rows.map((row) => row.id);
+  if (scope === 'shown') {
+    // The list is capped for display; ask the server for every matching id.
+    try {
+      ids = (await api(`/api/admin/submission-ids?${filterQuery()}`)).ids;
+    } catch (error) {
+      return showMessage('bulk-msg', errorText(error));
+    }
+  }
+  if (!ids.length) return showMessage('bulk-msg', t('bulk.nothing'));
+
+  // Only the fields the admin actually filled in are sent, so a blank box
+  // never wipes a detail that is already on a record.
+  const fields = {};
+  const put = (key, value) => { if (value !== '') fields[key] = value; };
+  put('evaluator_name', document.getElementById('b-evaluator').value.trim());
+  put('evaluator_job_number', document.getElementById('b-evaluator-job').value.trim());
+  put('evaluated_date', document.getElementById('b-evaluated-date').value);
+  put('conformed_date', document.getElementById('b-conformed-date').value);
+  put('evaluator_comments', document.getElementById('b-comments').value.trim());
+  if (document.getElementById('b-reviewed').checked) fields.reviewed = true;
+
+  if (!Object.keys(fields).length) {
+    return showMessage('bulk-msg', t('bulk.empty'));
+  }
+
+  const button = document.getElementById('bulk-save');
+  button.disabled = true;
+  try {
+    const { updated } = await api('/api/admin/submissions', {
+      method: 'PATCH', body: { ids, fields },
+    });
+    bulkDialog.close();
+    showMessage('admin-msg', t('bulk.done', { count: updated }), 'ok');
+    load();
+  } catch (error) {
+    showMessage('bulk-msg', errorText(error));
+  } finally {
+    button.disabled = false;
+  }
+});
+
 // --- evaluator details ------------------------------------------------------
 
 function openEditor(row) {

@@ -43,6 +43,7 @@ const PAGES = {
   '/exam': 'exam.html',
   '/admin': 'admin.html',
   '/print': 'print.html',
+  '/export': 'export.html',
 };
 
 function sendText(res, status, text) {

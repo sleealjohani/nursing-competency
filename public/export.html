@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Export competency forms</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/app.css">
+<link rel="stylesheet" href="/css/print.css">
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <h1 data-i18n="export.heading">Export competency forms</h1>
+    <div class="sub" data-i18n="department">Nursing Service Department</div>
+  </div>
+  <div class="spacer"></div>
+  <span id="lang-slot"></span>
+  <a href="/admin" data-i18n="export.back">Back to records</a>
+</header>
+
+<main class="wrap narrow">
+  <div id="msg"></div>
+  <section class="card">
+    <h2 data-i18n="export.title">One PDF per employee</h2>
+    <p class="hint" data-i18n="export.hint">
+      Each employee gets a single PDF holding every competency they submitted.
+    </p>
+    <div class="progress-track"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+    <p class="hint" id="status" style="margin-top:12px"></p>
+    <div id="people"></div>
+    <div class="q-nav" style="margin-top:18px">
+      <a class="btn" href="/admin" data-i18n="export.back">Back to records</a>
+      <span class="spacer"></span>
+      <button type="button" class="btn-primary" id="download" hidden
+        data-i18n="export.download">Download ZIP</button>
+    </div>
+  </section>
+</main>
+
+<!-- The sheets are built here, off-screen, then captured page by page. -->
+<div id="stage" aria-hidden="true"
+     style="position:fixed;left:-10000px;top:0;width:210mm"></div>
+
+<script src="/js/i18n.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/vendor/html2canvas.min.js"></script>
+<script src="/js/form-render.js"></script>
+<script src="/js/pdfzip.js"></script>
+<script src="/js/export.js"></script>
+</body>
+</html>

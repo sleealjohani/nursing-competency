@@ -114,7 +114,7 @@ table { border-collapse: collapse; width: 100%; }
   padding-bottom: .6mm;
   font-weight: bold;
 }
-.details .keybox { font-size: 8pt; line-height: 1.3; white-space: nowrap; }
+.details .keybox { font-size: 8pt; line-height: 1.3; }
 .details .keybox b { font-weight: bold; }
 .details .scale { font-size: 7.8pt; white-space: nowrap; }
 

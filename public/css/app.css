@@ -18,6 +18,10 @@
 
 * { box-sizing: border-box; }
 
+/* Our own display rules on buttons and links outrank the browser's rule for
+   the hidden attribute, which would otherwise leave hidden buttons showing. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   background: var(--bg);

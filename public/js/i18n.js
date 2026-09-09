@@ -188,6 +188,32 @@ const STRINGS = {
     'admin.printSelected': 'Print selected forms',
     'admin.printAll': 'Print all shown',
     'admin.exportCsv': 'Export CSV',
+    'admin.fillEvaluator': 'Evaluator details',
+    'admin.exportZip': 'Download PDFs (ZIP)',
+
+    'bulk.heading': 'Evaluator details',
+    'bulk.applyTo': 'Apply to',
+    'bulk.scopeSelected': 'Selected records',
+    'bulk.scopeShown': 'All records shown',
+    'bulk.count': 'This will be written onto {count} record(s).',
+    'bulk.note': 'Blank fields are left untouched — nothing already recorded '
+      + 'is cleared.',
+    'bulk.apply': 'Apply to all',
+    'bulk.empty': 'Fill in at least one field first.',
+    'bulk.nothing': 'There are no records to change.',
+    'bulk.done': 'Evaluator details written onto {count} record(s).',
+
+    'export.heading': 'Export competency forms',
+    'export.title': 'One PDF per employee',
+    'export.hint': 'Each employee gets a single PDF holding every competency '
+      + 'they submitted, in the hospital\'s own form. Keep this tab open '
+      + 'while it builds.',
+    'export.back': 'Back to records',
+    'export.download': 'Download ZIP',
+    'export.forms': '{count} competency form(s)',
+    'export.pages': '{count} page(s)',
+    'export.working': 'Preparing {name}…',
+    'export.ready': '{files} PDF(s) ready — {size} MB.',
     'admin.showing': 'Showing {shown} of {total} submission(s)',
     'admin.nothingToPrint': 'Nothing to print.',
 
@@ -407,6 +433,31 @@ const STRINGS = {
     'admin.printSelected': 'طباعة النماذج المحددة',
     'admin.printAll': 'طباعة كل المعروض',
     'admin.exportCsv': 'تصدير CSV',
+    'admin.fillEvaluator': 'بيانات المُقيِّم',
+    'admin.exportZip': 'تنزيل ملفات PDF (ZIP)',
+
+    'bulk.heading': 'بيانات المُقيِّم',
+    'bulk.applyTo': 'التطبيق على',
+    'bulk.scopeSelected': 'السجلات المحددة',
+    'bulk.scopeShown': 'جميع السجلات المعروضة',
+    'bulk.count': 'ستُكتب هذه البيانات على {count} سجلًا.',
+    'bulk.note': 'الحقول الفارغة تُترك كما هي — ولا يُمسح أي بيان مسجَّل مسبقًا.',
+    'bulk.apply': 'تطبيق على الكل',
+    'bulk.empty': 'أدخل حقلًا واحدًا على الأقل.',
+    'bulk.nothing': 'لا توجد سجلات لتعديلها.',
+    'bulk.done': 'تمت كتابة بيانات المُقيِّم على {count} سجلًا.',
+
+    'export.heading': 'تصدير نماذج الكفاءة',
+    'export.title': 'ملف PDF واحد لكل موظف',
+    'export.hint': 'يحصل كل موظف على ملف PDF واحد يضم جميع الكفاءات التي '
+      + 'أرسلها، بنموذج المستشفى المعتمد. أبقِ هذه الصفحة مفتوحة أثناء '
+      + 'التحضير.',
+    'export.back': 'العودة إلى السجلات',
+    'export.download': 'تنزيل ملف ZIP',
+    'export.forms': '{count} نموذج كفاءة',
+    'export.pages': '{count} صفحة',
+    'export.working': 'جارٍ تحضير {name}…',
+    'export.ready': 'تم تحضير {files} ملف PDF — {size} ميغابايت.',
     'admin.showing': 'عرض {shown} من {total} سجل',
     'admin.nothingToPrint': 'لا يوجد ما يُطبع.',
 

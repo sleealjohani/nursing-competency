@@ -127,8 +127,11 @@ check('every data-i18n key used in the pages is defined', () => {
 check('every t() key used in the scripts is defined', () => {
   const missing = new Set();
   for (const file of fs.readdirSync(path.join(PUBLIC, 'js'))) {
-    if (file === 'i18n.js') continue;
-    const js = fs.readFileSync(path.join(PUBLIC, 'js', file), 'utf8');
+    // i18n.js defines the keys; vendor/ is third-party and not ours to check.
+    if (file === 'i18n.js' || !file.endsWith('.js')) continue;
+    const full = path.join(PUBLIC, 'js', file);
+    if (fs.statSync(full).isDirectory()) continue;
+    const js = fs.readFileSync(full, 'utf8');
     for (const match of js.matchAll(/\bt\('([a-zA-Z][\w.]*)'/g)) {
       if (!(match[1] in STRINGS.en)) missing.add(`${file}: ${match[1]}`);
     }

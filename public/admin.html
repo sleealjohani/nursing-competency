@@ -120,6 +120,8 @@
       <strong id="selected-count">0 selected</strong>
       <button type="button" class="btn-primary" id="print-selected" data-i18n="admin.printSelected">Print selected forms</button>
       <button type="button" id="print-all" data-i18n="admin.printAll">Print all shown</button>
+      <button type="button" id="fill-evaluator" data-i18n="admin.fillEvaluator">Evaluator details</button>
+      <button type="button" id="export-zip" data-i18n="admin.exportZip">Download PDFs (ZIP)</button>
       <button type="button" id="export-csv" data-i18n="admin.exportCsv">Export CSV</button>
       <span class="spacer"></span>
       <span class="hint" style="margin:0" id="page-info"></span>
@@ -177,6 +179,55 @@
       <span style="flex:1"></span>
       <button type="button" id="edit-cancel" data-i18n="editor.cancel">Cancel</button>
       <button type="button" class="btn-primary" id="edit-save" data-i18n="editor.save">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Fill the evaluator's details on many records at once -->
+<dialog id="bulk-dialog">
+  <form method="dialog">
+    <div class="dlg-body">
+      <h2 id="bulk-title" style="margin-top:0" data-i18n="bulk.heading">Evaluator details</h2>
+      <p class="hint" id="bulk-sub"></p>
+      <div id="bulk-msg"></div>
+      <div class="field">
+        <label data-i18n="bulk.applyTo">Apply to</label>
+        <select id="b-scope">
+          <option value="selected" data-i18n="bulk.scopeSelected">Selected records</option>
+          <option value="shown" data-i18n="bulk.scopeShown">All records shown</option>
+        </select>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="b-evaluator" data-i18n="editor.evaluatorName">Evaluator's Name</label>
+          <input id="b-evaluator">
+        </div>
+        <div class="field">
+          <label for="b-evaluator-job" data-i18n="editor.evaluatorJob">Evaluator's Job Number</label>
+          <input id="b-evaluator-job">
+        </div>
+        <div class="field">
+          <label for="b-evaluated-date" data-i18n="editor.evaluatedDate">Evaluated Date</label>
+          <input id="b-evaluated-date" type="date">
+        </div>
+        <div class="field">
+          <label for="b-conformed-date" data-i18n="editor.conformedDate">Conformed Date</label>
+          <input id="b-conformed-date" type="date">
+        </div>
+      </div>
+      <div class="field">
+        <label for="b-comments" data-i18n="editor.comments">Evaluator's Comments</label>
+        <textarea id="b-comments"></textarea>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="b-reviewed">
+          <span data-i18n="editor.markSignedOff">Mark as signed off</span></label>
+      </div>
+      <p class="hint" data-i18n="bulk.note">Blank fields are left untouched.</p>
+    </div>
+    <div class="dlg-foot">
+      <button type="button" id="bulk-cancel" data-i18n="editor.cancel">Cancel</button>
+      <button type="button" class="btn-primary" id="bulk-save" data-i18n="bulk.apply">Apply</button>
     </div>
   </form>
 </dialog>

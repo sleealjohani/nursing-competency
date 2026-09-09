@@ -240,6 +240,12 @@ date.
   evaluator's name and job number, evaluated date, comments, staff nurse
   comments, needs-remedial and remedial date, conformed date — and marks
   it signed off.
+- **Evaluator details** fills that same foot in on many records at once —
+  the evaluator's name and job number, the evaluated and conformed dates, a
+  comment, and the sign-off — over either the records you ticked or every
+  record the filters are showing. Only the boxes you actually fill are
+  written, so a blank one never wipes what a record already carries. It
+  saves signing the same evaluator into a whole unit's forms one by one.
 - **Print selected forms** (or **Print all shown**) reproduces the chosen
   records as the hospital's own competency form — the same letterhead and
   logos, field grid, bordered assessment table and pair of signature boxes
@@ -251,6 +257,21 @@ date.
   long form breaks where the paper does: the letterhead and column headers
   repeat on every sheet and the signature boxes sit at the end. The two
   logos in `public/img/` were taken from the source PDFs themselves.
+- **Download PDFs (ZIP)** gives one PDF per employee, named after them
+  (`Sara Al-Juhany - AGH-1042.pdf`), each holding every competency that
+  nurse submitted on the same hospital form — a folder ready to file or to
+  hand to a supervisor. It covers the records you ticked, or everything the
+  filters show.
+
+  The pages are drawn by the browser rather than the server, because the
+  browser is the one part of the stack that shapes and orders Arabic
+  correctly and a mangled name on a signed record is not a cosmetic bug.
+  Each sheet is captured at print resolution and reduced to one bit per
+  pixel — the form is black on white, so nothing is lost — which keeps a
+  page around 60 KB and free of the smearing JPEG leaves around text. The
+  PDF and the ZIP are written by `public/js/pdfzip.js` with no library
+  beyond the capture itself. A large export takes a few seconds per
+  employee, so leave the page open while the bar fills.
 - **Export CSV** gives the same list as a spreadsheet.
 
 ## How a competency is scored
@@ -312,7 +333,8 @@ wording and direction — then walks the whole journey:
 Walks the whole journey — every form loads with unique items,
 registration, rejected and accepted submissions, the NA deduction, the 90%
 pass mark, the equipment scale, admin authentication, filters, evaluator
-details, the print payload, CSV export, deletion and the login lockout —
+details in bulk, the print payload, the per-employee export grouping,
+CSV export, deletion and the login lockout —
 against every way the site can be deployed:
 
 1. `server.js` on SQLite (self-hosted)
@@ -381,6 +403,11 @@ public/index.html               Nurse: register and choose a competency
 public/exam.html                Nurse: the one-click exam
 public/admin.html               Admin: records, evaluator details, printing
 public/print.html               The printable competency forms
+public/export.html              Admin: one PDF per employee, packed into a ZIP
+public/js/form-render.js        Draws the hospital form; shared by both of those
+public/js/pdfzip.js             Writes the PDF and the ZIP in the browser
+public/js/vendor/               html2canvas 1.4.1 (MIT), the only third-party
+                                script; vendored so the site loads no CDN
 
 tools/extract_competencies.py   PDF -> data/competencies.json
 tools/translations.py           Manage and check the Arabic overlay
